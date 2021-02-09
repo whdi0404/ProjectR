@@ -9,6 +9,8 @@ public class Map : MonoBehaviour
 	[SerializeField]
 	private Tilemap tileMap;
 
+	public Tilemap TIleMap { get => tileMap;  }
+
 	public void Start()
 	{
 		Generate( 1024, Random.Range( 0, int.MaxValue ) );
