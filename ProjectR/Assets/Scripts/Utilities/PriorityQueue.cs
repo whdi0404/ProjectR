@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class PriorityQueue<T> where T : IComparable<T>
 {
@@ -17,11 +15,11 @@ public class PriorityQueue<T> where T : IComparable<T>
 		this.isDescending = isDescending;
 	}
 
-	public void Enqueue(T newData)
+	public void Enqueue( T newData )
 	{
 		int currentIndex = container.Count;
 		container.Add( newData );
-		
+
 		if ( currentIndex == 0 )
 			return;
 
@@ -88,6 +86,11 @@ public class PriorityQueue<T> where T : IComparable<T>
 		return retVal;
 	}
 
+	public void Clear()
+	{
+		container.Clear();
+	}
+
 	private static int GetParentIndex( int index )
 	{
 		return ( index - 1 ) / 2;
@@ -97,17 +100,4 @@ public class PriorityQueue<T> where T : IComparable<T>
 	{
 		return ( index + 1 ) * 2;
 	}
-}
-
-public class PathFinder
-{
-	private Map map;
-	private PriorityQueue<int> heap;
-	
-	public void Init( Map map )
-	{
-		this.map = map;
-		heap = new PriorityQueue<int>();
-	}
-
 }
