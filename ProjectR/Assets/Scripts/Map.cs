@@ -13,13 +13,14 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	private Dictionary<string, Tile> tilePalette = new Dictionary<string, Tile>();
 
-	private Tilemap tileMap = null;
+	public HashSet<Vector2Int> PlantEnableTiles { get; set; } = new HashSet<Vector2Int>();
 
+	private Tilemap tileMap = null;
 
 	public void Start()
 	{
 		tileMap = GetComponentInChildren<Tilemap>();
-		Generate( 1024, Random.Range( 0, int.MaxValue ) );
+		Generate( 512, Random.Range( 0, int.MaxValue ) );
 		WorldManager.Init( this );
 	}
 
@@ -73,12 +74,15 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 				}
 				float gradationNoise = noise * maxGradation;
 
-				if ( gradationNoise < 0.2f )
-					tileMap[ x + y * mapSize ] = tilePalette[ water ];
-				else if ( gradationNoise < 0.3f )
-					tileMap[ x + y * mapSize ] = tilePalette[ sand ];
+				if (gradationNoise < 0.2f)
+					tileMap[x + y * mapSize] = tilePalette[water];
+				else if (gradationNoise < 0.3f)
+					tileMap[x + y * mapSize] = tilePalette[sand];
 				else
-					tileMap[ x + y * mapSize ] = tilePalette[ ground ];
+                {
+                    PlantEnableTiles.Add(new Vector2Int(x, y));
+                    tileMap[x + y * mapSize] = tilePalette[ground];
+				}
 
 				if ( gradationNoise >= 0.2f && noise > 0.8f )
 					tileMap[ x + y * mapSize ] = tilePalette[ wall ];
@@ -94,6 +98,9 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	public void SetTile( Vector2Int tilePos, string tileName )
 	{
+		PlantEnableTiles.Remove(tilePos);
+		if (tileName == ground)
+			PlantEnableTiles.Add(tilePos);
 		tileMap.SetTile( new Vector3Int( tilePos.x, tilePos.y, 0 ), tilePalette[ tileName ] );
 	}
 	public Vector3 MapPositionToWorldPosition( Vector2 mapPosition )
@@ -107,9 +114,9 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		return new Vector2Int( tilePos.x, tilePos.y );
 	}
 
-	float IPathFinderGraph<Vector2Int>.GetTileMovableWeight( Vector2Int pos )
+	public float GetTileMovableWeight( Vector2Int mapTilePos )
 	{
-		TileBase tile = tileMap.GetTile( new Vector3Int( pos.x, pos.y, 0 ) );
+		TileBase tile = tileMap.GetTile( new Vector3Int( mapTilePos.x, mapTilePos.y, 0 ) );
 		if ( tile == tilePalette[ ground ]
 			|| tile == tilePalette[ sand ] )
 			return 1;
@@ -117,15 +124,20 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		return -1;
 	}
 
-	IEnumerable<Vector2Int> IPathFinderGraph<Vector2Int>.GetAdjacentTiles( Vector2Int pos )
+	public IEnumerable<Vector2Int> GetAdjacentTiles( Vector2Int mapTilePos )
 	{
-		yield return new Vector2Int( pos.x - 1, pos.y - 1 );
-		yield return new Vector2Int( pos.x - 1, pos.y );
-		yield return new Vector2Int( pos.x - 1, pos.y + 1 );
-		yield return new Vector2Int( pos.x, pos.y - 1 );
-		yield return new Vector2Int( pos.x, pos.y + 1 );
-		yield return new Vector2Int( pos.x + 1, pos.y - 1 );
-		yield return new Vector2Int( pos.x + 1, pos.y );
-		yield return new Vector2Int( pos.x + 1, pos.y + 1 );
+		yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y);
+		yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y);
+		yield return new Vector2Int(mapTilePos.x, mapTilePos.y - 1);
+		yield return new Vector2Int(mapTilePos.x, mapTilePos.y + 1);
+		yield return new Vector2Int( mapTilePos.x - 1, mapTilePos.y - 1 );
+		yield return new Vector2Int( mapTilePos.x - 1, mapTilePos.y + 1 );
+		yield return new Vector2Int( mapTilePos.x + 1, mapTilePos.y - 1 );
+		yield return new Vector2Int( mapTilePos.x + 1, mapTilePos.y + 1 );
+	}
+
+	public bool IsPlantEnableTile(Vector2Int mapTilePos)
+	{
+		return PlantEnableTiles.Contains(mapTilePos);
 	}
 }

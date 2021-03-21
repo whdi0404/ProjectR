@@ -8,3 +8,5 @@ ProjectR/ProjectR.sln
 ProjectR/Assembly-CSharp.csproj
 ProjectR/Temp
 ProjectR/Packages/packages-lock.json
+*.csproj
+ProjectR/app.config
