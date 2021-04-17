@@ -7,7 +7,7 @@ public interface IPathFinderGraph<T> where T : IEquatable<T>
 {
 	public float GetTileMovableWeight( T pos );
 
-	public IEnumerable<T> GetAdjacentTiles( T pos );
+	public IEnumerable<T> GetAdjacentTiles( T pos, bool includeDiagonal );
 }
 
 public class PathFinder<T> where T : IEquatable<T>
@@ -85,7 +85,7 @@ public class PathFinder<T> where T : IEquatable<T>
 			if ( closed[ currentNode.Pos ] != currentNode )
 				continue;//더 좋은 수가 생겼을때
 
-			var adjucentTiles = map.GetAdjacentTiles( currentNode.Pos );
+			var adjucentTiles = map.GetAdjacentTiles( currentNode.Pos, true );
 
 			foreach ( T nextPos in adjucentTiles )
 			{

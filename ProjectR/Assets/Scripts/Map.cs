@@ -11,11 +11,12 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 	public const string water = "Water";
 	public const string wall = "Wall";
 
+	private Tilemap tileMap = null;
+
 	private Dictionary<string, Tile> tilePalette = new Dictionary<string, Tile>();
 
+	public int MapSize { get; private set; }
 	public HashSet<Vector2Int> PlantEnableTiles { get; set; } = new HashSet<Vector2Int>();
-
-	private Tilemap tileMap = null;
 
 	public void Start()
 	{
@@ -30,6 +31,8 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		tilePalette.Add( sand, Resources.Load<Tile>( "Tiles/Sand" ) );
 		tilePalette.Add( water, Resources.Load<Tile>( "Tiles/Water" ) );
 		tilePalette.Add( wall, Resources.Load<Tile>( "Tiles/Wall" ) );
+
+		MapSize = mapSize;
 
 		TileBase[] tileMap = new TileBase[ mapSize * mapSize ];
 		float[,] noiseMap = new float[ mapSize, mapSize ];
@@ -124,16 +127,32 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		return -1;
 	}
 
-	public IEnumerable<Vector2Int> GetAdjacentTiles( Vector2Int mapTilePos )
-	{
-		yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y);
-		yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y);
-		yield return new Vector2Int(mapTilePos.x, mapTilePos.y - 1);
-		yield return new Vector2Int(mapTilePos.x, mapTilePos.y + 1);
-		yield return new Vector2Int( mapTilePos.x - 1, mapTilePos.y - 1 );
-		yield return new Vector2Int( mapTilePos.x - 1, mapTilePos.y + 1 );
-		yield return new Vector2Int( mapTilePos.x + 1, mapTilePos.y - 1 );
-		yield return new Vector2Int( mapTilePos.x + 1, mapTilePos.y + 1 );
+	public IEnumerable<Vector2Int> GetAdjacentTiles( Vector2Int mapTilePos, bool includeDiagonal)
+    {
+        if (IsCorrectPosition(new Vector2Int(mapTilePos.x - 1, mapTilePos.y)) == true)
+            yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y);
+		if (IsCorrectPosition(new Vector2Int(mapTilePos.x + 1, mapTilePos.y)) == true)
+			yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y);
+		if (IsCorrectPosition(new Vector2Int(mapTilePos.x, mapTilePos.y - 1)) == true)
+			yield return new Vector2Int(mapTilePos.x, mapTilePos.y - 1);
+		if (IsCorrectPosition(new Vector2Int(mapTilePos.x, mapTilePos.y + 1)) == true)
+			yield return new Vector2Int(mapTilePos.x, mapTilePos.y + 1);
+
+		if(includeDiagonal == true)
+		{
+			if (IsCorrectPosition(new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1)) == true)
+				yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1);
+			if (IsCorrectPosition(new Vector2Int(mapTilePos.x - 1, mapTilePos.y + 1)) == true)
+				yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y + 1);
+			if (IsCorrectPosition(new Vector2Int(mapTilePos.x + 1, mapTilePos.y - 1)) == true)
+				yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y - 1);
+			if (IsCorrectPosition(new Vector2Int(mapTilePos.x + 1, mapTilePos.y + 1)) == true)
+				yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y + 1);
+		}
+    }
+    public bool IsCorrectPosition(Vector2Int mapTilePos)
+    {
+		return mapTilePos.x >= 0 && mapTilePos.x < MapSize && mapTilePos.y >= 0 && mapTilePos.y < MapSize;
 	}
 
 	public bool IsPlantEnableTile(Vector2Int mapTilePos)

@@ -34,7 +34,7 @@ public static class WorldManager
 	public static void Init( Map map )
 	{
 		WorldManager.map = map;
-		pathFinder = new PathFinder<Vector2Int>( Vector2IntExt.Get8DirectionLength );
+		pathFinder = new PathFinder<Vector2Int>( VectorExt.Get8DirectionLength );
 		rObjList = new List<RObject>();
 		usingRObjBehaviours = new List<RObjectBehaviour>();
 		rObjBehavioursPool = new List<RObjectBehaviour>();

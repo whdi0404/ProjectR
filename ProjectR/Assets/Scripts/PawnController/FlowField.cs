@@ -2,93 +2,117 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FlowFieldCell
-{
-    public Vector2Int position;
-    public Vector2 direction;
-    public float distance;
-
-    public bool unpassable;
-
-    public FlowFieldCell(Vector2Int position)
-    {
-        this.position = position;
-    }
-}
-
 public class FlowField
 {
-    Map map;
+    private class FlowFieldCell
+    {
+        public Vector2Int position;
+        public Vector2 direction;
+        public float distance;
+
+        public bool unpassable;
+
+        public FlowFieldCell(Vector2Int position)
+        {
+            this.position = position;
+        }
+    }
+
+    private Map map;
     private Vector2Int[] goals;
-    public FlowField(Map map, Vector2Int[] goals)
+    private Dictionary<Vector2Int, FlowFieldCell> flowFieldCells = new Dictionary<Vector2Int, FlowFieldCell>();
+
+    public FlowField(Map map)
     {
         this.map = map;
-        this.goals = goals;
     }
-    /// <summary>
-    /// Wavefront algorithm to create a distance field.
-    /// </summary>
-    public void GenerateDistanceField()
+
+    public bool Calculate(Vector2Int[] goals)
     {
+        this.goals = goals;
         if (goals == null || goals.Length < 1)
         {
             Debug.LogError("No goals set !");
-            return;
+            return false;
         }
 
-        var marked = new List<FlowFieldCell>();
+        flowFieldCells.Clear();
+
+        GenerateDistanceField();
+        GenerateVectorFields();
+
+        return true;
+    }
+
+    private void GenerateDistanceField()
+    {
+        List<Vector2Int> searchingPosition = new List<Vector2Int>();
 
         foreach(var goal in goals)
         {
-            marked.Add(new FlowFieldCell(goal));
+            searchingPosition.Add(goal);
+            var cell = new FlowFieldCell(goal);
+            flowFieldCells.Add(goal, cell);
         }
 
 
-        while (marked.Count < map.Length)
+        while (searchingPosition.Count > 0)
         {
-            for (int i = 0; i < marked.Count; i++)
+            int searchingPositionCount = searchingPosition.Count;
+            for (int i = 0; i < searchingPositionCount; i++)
             {
-                if (marked[i].unpassable)
+                float weight = map.GetTileMovableWeight(searchingPosition[i]);
+                if (weight == -1)
                     continue;
 
-                var neighbours = grid.GetMooreNeighbours(marked[i]);
-                for (int j = 0; j < 8; j++)
+                var neighbours = map.GetAdjacentTiles(searchingPosition[i],true);
+                foreach (var cur in neighbours)
                 {
-                    var cur = neighbours[j];
-                    if (cur == null || marked.Contains(cur))
+                    if (flowFieldCells.ContainsKey(cur) == true)
                         continue;
 
-                    cur.distance = marked[i].distance;
-                    cur.distance += (cur.position - marked[i].position).magnitude;
+                    var searchingCell = flowFieldCells[searchingPosition[i]];
 
-                    marked.Add(cur);
+                    var cell = new FlowFieldCell(cur);
+                    cell.distance = searchingCell.distance + (cur - searchingCell.position).magnitude;
+                    flowFieldCells.Add(cur, cell);
+                    searchingPosition.Add(cur);
                 }
             }
+
+            searchingPosition.RemoveRange(0, searchingPositionCount);
         }
     }
 
-
-    public void GenerateVectorFields()
+    private void GenerateVectorFields()
     {
-        for (int i = 0; i < grid.cells.Length; i++)
+        foreach (FlowFieldCell cur in flowFieldCells.Values)
         {
-            var cur = grid.cells[i];
-            var neighbours = grid.GetNeumannNeighbours(cur);
+            var neighbours = map.GetAdjacentTiles(cur.position, true);
 
-            float left, right, up, down;
-            left = right = up = down = cur.distance;
+            FlowFieldCell nearCell = null;
+            foreach (var neighbour in neighbours)
+            {
+                if (flowFieldCells.TryGetValue(neighbour, out FlowFieldCell neighbourCell) == true)
+                {
+                    if (nearCell == null || nearCell.distance < neighbourCell.distance)
+                    {
+                        nearCell = neighbourCell;
+                    }
+                }
+            }
 
-            if (neighbours[0] != null && !neighbours[0].unpassable) up = neighbours[0].distance;
-            if (neighbours[1] != null && !neighbours[1].unpassable) right = neighbours[1].distance;
-            if (neighbours[2] != null && !neighbours[2].unpassable) down = neighbours[2].distance;
-            if (neighbours[3] != null && !neighbours[3].unpassable) left = neighbours[3].distance;
-
-
-            float x = left - right;
-            float y = down - up;
-
-            cur.direction = new Vector2(x, y);
-            cur.direction.Normalize();
+            Vector2 dir = nearCell.position - cur.position;
+            dir.Normalize();
+            cur.direction = dir;
         }
+    }
+
+    public Vector2 GetMovingDriection(Vector2Int currentPos)
+    {
+        if (flowFieldCells.TryGetValue(currentPos, out FlowFieldCell cell) == true)
+            return cell.direction;
+
+        return Vector2.zero;
     }
 }
