@@ -13,6 +13,8 @@ public abstract class RObject
         set => MapPosition = value + new Vector2(0.5f, 0.5f);
     }
 
+    public float Speed { get { return 5.0f; }}
+
     public virtual Sprite VisualImage { get; set; }
 
     protected RObject(DataContainer properties)

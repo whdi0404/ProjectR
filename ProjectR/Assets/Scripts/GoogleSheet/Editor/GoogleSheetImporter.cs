@@ -17,7 +17,6 @@ namespace Table
         [Serializable]
         public class GoogleSpreadSheetInfo
         {
-
             [TableColumnWidth(350)]
             [OdinSerialize]
             public string SheetId { get; private set; }

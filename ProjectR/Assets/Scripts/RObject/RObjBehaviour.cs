@@ -18,7 +18,7 @@ public class RObjectBehaviour : MonoBehaviour
 
     private void Update()
     {
-        transform.position = WorldManager.MapPosToWorldPosition(rObj.MapPosition);
+        transform.position = rObj.MapPosition;
         VisualUpdate();
     }
 

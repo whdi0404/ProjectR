@@ -18,27 +18,25 @@ public class FlowField
         }
     }
 
-    private Map map;
-    private Vector2Int[] goals;
+    private WorldMap map;
+    private Vector2Int goal;
     private Dictionary<Vector2Int, FlowFieldCell> flowFieldCells = new Dictionary<Vector2Int, FlowFieldCell>();
 
-    public FlowField(Map map)
+    public FlowField(WorldMap map)
     {
         this.map = map;
     }
 
-    public bool Calculate(Vector2Int[] goals)
+    public bool Calculate(Vector2Int startPos, Vector2Int goal)
     {
-        this.goals = goals;
-        if (goals == null || goals.Length < 1)
-        {
-            Debug.LogError("No goals set !");
-            return false;
-        }
+        this.goal = goal;
 
         flowFieldCells.Clear();
 
         GenerateDistanceField();
+
+        if (flowFieldCells.ContainsKey(startPos) == false)
+            return false;
         GenerateVectorFields();
 
         return true;
@@ -48,33 +46,32 @@ public class FlowField
     {
         List<Vector2Int> searchingPosition = new List<Vector2Int>();
 
-        foreach(var goal in goals)
-        {
-            searchingPosition.Add(goal);
-            var cell = new FlowFieldCell(goal);
-            flowFieldCells.Add(goal, cell);
-        }
-
+        searchingPosition.Add(goal);
+        var goalCell = new FlowFieldCell(goal);
+        flowFieldCells.Add(goal, goalCell);
 
         while (searchingPosition.Count > 0)
         {
             int searchingPositionCount = searchingPosition.Count;
             for (int i = 0; i < searchingPositionCount; i++)
             {
-                float weight = map.GetTileMovableWeight(searchingPosition[i]);
-                if (weight == -1)
+                AtlasInfoDescriptor tmp;
+                if (map.TryGetTile(searchingPosition[i], out tmp) == false || tmp.MoveWeight == 0)
                     continue;
 
-                var neighbours = map.GetAdjacentTiles(searchingPosition[i],true);
+                var neighbours = map.GetAdjacentTiles(searchingPosition[i], true);
                 foreach (var cur in neighbours)
                 {
                     if (flowFieldCells.ContainsKey(cur) == true)
                         continue;
 
+                    if (map.TryGetTile(cur, out tmp) == false || tmp.MoveWeight == 0)
+                        continue;
+
                     var searchingCell = flowFieldCells[searchingPosition[i]];
 
                     var cell = new FlowFieldCell(cur);
-                    cell.distance = searchingCell.distance + (cur - searchingCell.position).magnitude;
+                    cell.distance = searchingCell.distance + (cur - searchingCell.position).magnitude * tmp.MoveWeight;
                     flowFieldCells.Add(cur, cell);
                     searchingPosition.Add(cur);
                 }

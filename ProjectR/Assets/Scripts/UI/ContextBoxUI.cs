@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+[UIPrefab("UI/Prefab/ContextBox")]
 public class ContextBoxUI : UIContext
 {
     [SerializeField]

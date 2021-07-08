@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -10,6 +8,7 @@ using Object = UnityEngine.Object;
 [Singleton(CreateInstance = true, DontDestroyOnLoad = true, PrefabPath = "")]
 public class UIManager : SingletonBehaviour<UIManager>
 {
+    [SerializeField]
     private Transform uiRoot;
     public Transform UIRoot { get => uiRoot; }
 

@@ -22,7 +22,6 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 	{
 		tileMap = GetComponentInChildren<Tilemap>();
 		Generate( 512, Random.Range( 0, int.MaxValue ) );
-		WorldManager.Init( this );
 	}
 
 	public void Generate( int mapSize, int seed )
