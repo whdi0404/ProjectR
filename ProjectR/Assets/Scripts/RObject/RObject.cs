@@ -25,6 +25,31 @@ public abstract class RObject
         Properties = properties;
     }
 
-    public abstract void Update(float dt);
+    private RObjectBehaviour behaviour;
+
+    public virtual void Update(float dt)
+    {
+        if (behaviour == null && IsInCamera())
+        {
+            RObjectBehaviour bh = GOPoolManager.Instance.Pop("RObj").GetComponent<RObjectBehaviour>();
+            bh.Init(this);
+
+            behaviour = bh;
+        }
+        else if(behaviour != null && !IsInCamera())
+        {
+            behaviour.gameObject.SetActive(false);
+            behaviour = null;
+        }
+    }
     public abstract void VisualUpdate(float dt);
+
+    private bool IsInCamera()
+    {
+        Camera camera = Camera.main;
+
+        Vector3 v = camera.WorldToViewportPoint(MapPosition);
+
+        return v.x > -1 && v.x < 1 && v.y > -1 && v.y < 1;
+    }
 }

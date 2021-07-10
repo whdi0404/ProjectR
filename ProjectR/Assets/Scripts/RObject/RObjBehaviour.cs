@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class RObjectBehaviour : MonoBehaviour
 {
-    public RObject rObj { get; set; }
+    public RObject RObj { get; set; }
 
     private SpriteRenderer spriteRenderer;
 
@@ -13,18 +13,18 @@ public class RObjectBehaviour : MonoBehaviour
 
     public void Init(RObject rObj)
     {
-        this.rObj = rObj;
+        this.RObj = rObj;
     }
 
     private void Update()
     {
-        transform.position = rObj.MapPosition;
+        transform.position = RObj.MapPosition;
         VisualUpdate();
     }
 
     public void VisualUpdate()
     {
-        rObj.VisualUpdate(Time.deltaTime);
-        spriteRenderer.sprite = rObj.VisualImage;
+        RObj.VisualUpdate(Time.deltaTime);
+        spriteRenderer.sprite = RObj.VisualImage;
     }
 }

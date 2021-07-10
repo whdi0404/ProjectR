@@ -36,11 +36,14 @@ public class GOPoolManager : SingletonBehaviour<GOPoolManager>
         public void Init(GameObject original, int initCount)
         {
             this.original = original;
+            DontDestroyOnLoad(original);
+            original.SetActive(false);
         }
 
         private void Push(PoolObject poolObj)
         {
             deactiveObjects.Add(poolObj);
+            DontDestroyOnLoad(poolObj);
         }
 
         public GameObject Pop()

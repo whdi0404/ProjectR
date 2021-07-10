@@ -6,20 +6,13 @@ using UnityEngine;
 public class GameManager : SingletonBehaviour<GameManager>
 {
     public WorldMap WorldMap { get; private set; }
-
-    private List<RObject> rObjList;
-    private List<RObjectBehaviour> activedBehaviours;
-    private List<RObjectBehaviour> deactivedBehaviours;
-
+    private List<RObject> rObjList = new List<RObject>();
 
     protected override void Start()
     {
-        GameObject go = new GameObject("WorldMap");
-        WorldMap = go.AddComponent<WorldMap>();
+        WorldMap = new GameObject("WorldMap").AddComponent<WorldMap>();
 
-        rObjList = new List<RObject>();
-        activedBehaviours = new List<RObjectBehaviour>();
-        deactivedBehaviours = new List<RObjectBehaviour>();
+        GOPoolManager.Instance.Init("RObj", new GameObject("RObject", typeof(RObjectBehaviour)), 10);
     }
 
     private void Update()

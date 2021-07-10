@@ -14,6 +14,7 @@ public class Pawn : RObject
 
 	public override void Update(float dt)
 	{
+		base.Update(dt);
 		PawnAI.UpdateTick(this);
 	}
 
