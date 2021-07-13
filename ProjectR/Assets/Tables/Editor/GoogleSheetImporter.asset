@@ -27,7 +27,7 @@ MonoBehaviour:
         Assembly-CSharp-Editor]], mscorlib
     - Name: 
       Entry: 12
-      Data: 2
+      Data: 3
     - Name: 
       Entry: 7
       Data: 1|Table.GoogleSheetImporter+GoogleSpreadSheetInfo, Assembly-CSharp-Editor
@@ -49,6 +49,18 @@ MonoBehaviour:
     - Name: SheetName
       Entry: 1
       Data: TileAtlasInfo
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 3|Table.GoogleSheetImporter+GoogleSpreadSheetInfo, Assembly-CSharp-Editor
+    - Name: SheetId
+      Entry: 1
+      Data: 1KoeXLwhWTTEe2RojFo8SAIAe1SpyLJrt9d_dh-9YcfE
+    - Name: SheetName
+      Entry: 1
+      Data: StructurePlanningTable
     - Name: 
       Entry: 8
       Data: 

@@ -20,4 +20,15 @@ public class GameManager : SingletonBehaviour<GameManager>
         foreach (var rObj in rObjList)
             rObj.Update(Time.deltaTime);
     }
+
+    public void CreateRObject(RObject rObj)
+    {
+        rObjList.Add(rObj);
+    }
+
+    public void DestroyRObject(RObject rObj)
+    {
+        rObj.Destroy();
+        rObjList.Remove(rObj);
+    }
 }

@@ -56,9 +56,6 @@ MonoBehaviour:
     - Name: IsBlock
       Entry: 5
       Data: true
-    - Name: IsConstructure
-      Entry: 5
-      Data: true
     - Name: 
       Entry: 8
       Data: 
@@ -84,9 +81,6 @@ MonoBehaviour:
       Entry: 4
       Data: 0
     - Name: IsBlock
-      Entry: 5
-      Data: false
-    - Name: IsConstructure
       Entry: 5
       Data: false
     - Name: 
@@ -116,9 +110,6 @@ MonoBehaviour:
     - Name: IsBlock
       Entry: 5
       Data: false
-    - Name: IsConstructure
-      Entry: 5
-      Data: false
     - Name: 
       Entry: 8
       Data: 
@@ -144,9 +135,6 @@ MonoBehaviour:
       Entry: 4
       Data: 1
     - Name: IsBlock
-      Entry: 5
-      Data: false
-    - Name: IsConstructure
       Entry: 5
       Data: false
     - Name: 

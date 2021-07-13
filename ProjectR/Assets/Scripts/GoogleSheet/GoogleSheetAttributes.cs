@@ -38,13 +38,14 @@ namespace Table
     [AttributeUsage(AttributeTargets.Property)]
     public class GoogleRefColumnAttribute : Attribute
     {
-        public string SheetName { get; private set; }
-        public string ColumnName { get; private set; }
+        public const string ReferencePrefix = "[Ref]";
+        public Type TableType { get; private set; }
+        public string Name { get; private set; }
 
-        public GoogleRefColumnAttribute(string sheetName, string columnName)
+        public GoogleRefColumnAttribute(Type tableType, string name = null)
         {
-            SheetName = sheetName;
-            ColumnName = columnName;
+            TableType = tableType;
+            this.Name = name;
         }
     }
 }

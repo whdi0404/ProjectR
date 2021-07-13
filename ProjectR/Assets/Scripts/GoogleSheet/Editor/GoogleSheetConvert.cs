@@ -132,7 +132,7 @@ namespace Table.Editor
 
         public static bool IsReferenceColumn(string columnName)
         {
-            return columnName.Split('.').Length == 3;
+            return columnName.StartsWith(GoogleRefColumnAttribute.ReferencePrefix);
         }
     }
 }

@@ -9,8 +9,6 @@ public class AtlasInfoDescriptor : Descriptor
     public float MoveWeight { get; private set; }
     [GoogleColumn]
     public bool IsBlock { get; private set; }
-    [GoogleColumn]
-    public bool IsConstructure { get; private set; }
 }
 
 [GoogleWorkSheet("TileAtlasInfo", "AtlasInfo")]

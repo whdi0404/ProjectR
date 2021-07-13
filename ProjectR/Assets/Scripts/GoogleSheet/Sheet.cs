@@ -54,6 +54,16 @@ namespace Table
         public virtual void OnLoaded()
         {
         }
+
+        public virtual void AddObj(string key, object value)
+        { 
+        
+        }
+
+        public virtual IEnumerable<object> AllObj()
+        {
+            return null;
+        }
     }
 
     public abstract class Sheet<TDescriptor> : Sheet where TDescriptor : Descriptor
@@ -92,9 +102,9 @@ namespace Table
                     GoogleRefColumnAttribute attr = property.GetCustomAttribute<GoogleRefColumnAttribute>();
                     if (attr == null)
                         continue;
-                    referenceInfo.TryGetValue($"{desc.Id}.{attr.SheetName}.{attr.ColumnName}", out List<string> referenceIds);
+                    referenceInfo.TryGetValue($"{desc.Id}.{GoogleRefColumnAttribute.ReferencePrefix}{attr.Name ?? property.Name}", out List<string> referenceIds);
 
-                    var sheetTable = TableManager.GetTable(attr.SheetName);
+                    var sheetTable = TableManager.GetTable(attr.TableType);
                     Type refDescType = sheetTable.GetType().BaseType.GetGenericArguments()[0];
 
                     Type listType = typeof(List<>).MakeGenericType(refDescType);
@@ -130,6 +140,16 @@ namespace Table
         public override object FindObj(string key)
         {
             return Find(key);
+        }
+
+        public override void AddObj(string key, object value)
+        {
+            data.Add(key, (TDescriptor)value);
+        }
+
+        public override IEnumerable<object> AllObj()
+        {
+            return All();
         }
     }
 }

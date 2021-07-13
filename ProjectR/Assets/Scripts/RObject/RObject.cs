@@ -42,6 +42,16 @@ public abstract class RObject
             behaviour = null;
         }
     }
+
+    internal void Destroy()
+    {
+        if (behaviour != null)
+        { 
+            behaviour.gameObject.SetActive(false);
+            behaviour = null;
+        }
+    }
+
     public abstract void VisualUpdate(float dt);
 
     private bool IsInCamera()
