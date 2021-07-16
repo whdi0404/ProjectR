@@ -44,7 +44,7 @@ SpriteAtlas:
     variantMultiplier: 1
     packables:
     - {fileID: 102900000, guid: e135583113e1275458c19023d3892b68, type: 3}
-    totalSpriteSurfaceArea: 20480
+    totalSpriteSurfaceArea: 24576
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
@@ -55,12 +55,14 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 8ce59699a2eb46e49b9883fdf445d8a5, type: 3}
   - {fileID: 21300000, guid: 0a19d81a4f1118045b7c4c41e78c8265, type: 3}
   - {fileID: 21300000, guid: 28defb7a309c2144f98d31cf9884ec20, type: 3}
+  - {fileID: 21300000, guid: 40f37e9a3f0acad4caf6d5fea5b64a98, type: 3}
   m_PackedSpriteNamesToIndex:
   - Wall
   - Water
   - Ground
   - Sand
   - Door
+  - Deck
   m_RenderDataMap: {}
   m_Tag: TileAtlas
   m_IsVariant: 0

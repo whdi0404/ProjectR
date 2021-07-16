@@ -107,17 +107,26 @@ namespace Table
                     var sheetTable = TableManager.GetTable(attr.TableType);
                     Type refDescType = sheetTable.GetType().BaseType.GetGenericArguments()[0];
 
-                    Type listType = typeof(List<>).MakeGenericType(refDescType);
-                    object list = Activator.CreateInstance(listType);
-
-                    foreach (var referenceId in referenceIds)
+                    if (property.PropertyType.BaseType == typeof(List<>))
                     {
-                        object obj = sheetTable.FindObj(referenceId);
+                        Type listType = typeof(List<>).MakeGenericType(refDescType);
+                        object list = Activator.CreateInstance(listType);
 
-                        listType.GetMethod("Add").Invoke(list, new object[] { obj });
+                        foreach (var referenceId in referenceIds)
+                        {
+                            object obj = sheetTable.FindObj(referenceId);
+
+                            listType.GetMethod("Add").Invoke(list, new object[] { obj });
+                        }
+
+                        property.SetValue(desc, list);
                     }
-
-                    property.SetValue(desc, list);
+                    else if(referenceIds.Count == 1)
+                    {
+                        object obj = sheetTable.FindObj(referenceIds[0]);
+                        property.SetValue(desc, obj);
+                    }
+                    
                 }
             }
         }

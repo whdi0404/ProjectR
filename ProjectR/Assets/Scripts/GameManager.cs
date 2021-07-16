@@ -12,7 +12,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     {
         WorldMap = new GameObject("WorldMap").AddComponent<WorldMap>();
 
-        GOPoolManager.Instance.Init("RObj", new GameObject("RObject", typeof(RObjectBehaviour)), 10);
+        GOPoolManager.Instance.Init("RObj", new GameObject("RObject", typeof(RObjectBehaviour)));
     }
 
     private void Update()

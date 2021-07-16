@@ -27,7 +27,7 @@ MonoBehaviour:
         Assembly-CSharp-Editor]], mscorlib
     - Name: 
       Entry: 12
-      Data: 3
+      Data: 5
     - Name: 
       Entry: 7
       Data: 1|Table.GoogleSheetImporter+GoogleSpreadSheetInfo, Assembly-CSharp-Editor
@@ -61,6 +61,30 @@ MonoBehaviour:
     - Name: SheetName
       Entry: 1
       Data: StructurePlanningTable
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 4|Table.GoogleSheetImporter+GoogleSpreadSheetInfo, Assembly-CSharp-Editor
+    - Name: SheetId
+      Entry: 1
+      Data: 16gXOhXl6t6phBvXMGzOgiAjZMjBaYSo5y1QTO0S9HnQ
+    - Name: SheetName
+      Entry: 1
+      Data: ItemTable
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 5|Table.GoogleSheetImporter+GoogleSpreadSheetInfo, Assembly-CSharp-Editor
+    - Name: SheetId
+      Entry: 1
+      Data: 19XOlfrNlFqX7zYD6RmcCvhNbrgCKzwf6uojfeegtW1I
+    - Name: SheetName
+      Entry: 1
+      Data: InstallObjectTable
     - Name: 
       Entry: 8
       Data: 

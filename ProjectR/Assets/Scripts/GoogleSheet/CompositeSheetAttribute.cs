@@ -3,17 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class CompositeSheetAttribute : Attribute
+
+namespace Table
 {
-    public Type[] SheetsTypeList { get; private set; }
-
-    public CompositeSheetAttribute()
+    [AttributeUsage(AttributeTargets.Class)]
+    public class CompositeSheetAttribute : Attribute
     {
-    }
+        public Type[] SheetsTypeList { get; private set; }
 
-    public CompositeSheetAttribute(params Type[] sheetsTypeList)
-    {
-        SheetsTypeList = sheetsTypeList;
+        public CompositeSheetAttribute()
+        {
+        }
+
+        public CompositeSheetAttribute(params Type[] sheetsTypeList)
+        {
+            SheetsTypeList = sheetsTypeList;
+        }
     }
 }

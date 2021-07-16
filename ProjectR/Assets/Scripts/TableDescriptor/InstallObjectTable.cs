@@ -7,11 +7,11 @@ using UnityEngine;
 public class InstallObjectDataDescriptor : Descriptor
 {
     [GoogleColumn]
-    public Vector2Int Size { get; private set; }
+    public Vector2Int Size { get; set; }
     [GoogleColumn]
-    public string Image { get; private set; }
+    public string Image { get; set; }
     [GoogleColumn]
-    public bool IsBlock { get; private set; }
+    public bool IsBlock { get; set; }
 }
 
 public class WorkBenchDataDescriptor : InstallObjectDataDescriptor
@@ -24,7 +24,7 @@ public class WorkBenchDataTable : Sheet<WorkBenchDataDescriptor>
 
 }
 
-[CompositeSheet(typeof(InstallObjectDataDescriptor))]
+[CompositeSheet(typeof(WorkBenchDataTable))]
 public class InstallObjectTable : Sheet<InstallObjectDataDescriptor>
 {
 

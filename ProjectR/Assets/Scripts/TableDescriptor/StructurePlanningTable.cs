@@ -20,6 +20,14 @@ public class StructurePlanningDescriptor : Descriptor
 
     public List<RequireItem> ReqItemList { get; private set; }
 
+    public string Name 
+    {
+        get 
+        {
+            return ((Descriptor)Structure ?? InstallObject).Id;
+        }
+    }
+
     public void OnLoaded()
     {
         string[] splitStrings = RequireItems.Split(',');

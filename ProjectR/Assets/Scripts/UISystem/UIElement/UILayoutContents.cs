@@ -5,16 +5,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UILayoutContents : MonoBehaviour
+public class UILayoutContents<T> : MonoBehaviour where T : UIContext
 {
     [SerializeField]
     private Transform layout;
     public Transform Layout { get => layout; }
 
     [SerializeField]
-    private UIContext content;
-    public UIContext Content { get => content; }
-    public List<UIContext> InstanceList { get; private set; } = new List<UIContext>();
+    private T content;
+    public T Content { get => content; }
+    public List<T> InstanceList { get; private set; } = new List<T>();
 
 
     public void Start()
@@ -25,12 +25,12 @@ public class UILayoutContents : MonoBehaviour
             Debug.LogError("Content Not Set");
     }
 
-    public UIContext CreateInstance()
+    public T CreateInstance()
     {
         GameObject go = Instantiate(Content.gameObject);
         go.SetActive(true);
 
-        UIContext newInstance = go.GetComponent<UIContext>();
+        T newInstance = go.GetComponent<T>();
 
         InstanceList.Add(newInstance);
         go.transform.SetParent(Layout);
@@ -48,7 +48,7 @@ public class UILayoutContents : MonoBehaviour
         return true;
     }
 
-    public bool RemoveInstance(UIContext instance)
+    public bool RemoveInstance(T instance)
     {
         if (InstanceList.Remove(instance) == true)
         {

@@ -9,6 +9,7 @@ public struct PickObject
     public Vector2Int tilePos;
 }
 
+[Singleton(CreateInstance = true, DontDestroyOnLoad = true)]
 public class InputManager : SingletonBehaviour<InputManager>
 {
     public event System.Action<PickObject> onLeftButtonDownPick;

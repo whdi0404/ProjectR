@@ -6,8 +6,8 @@ using UnityEngine;
 public class ItemDataDescriptor : Descriptor
 {
     [GoogleColumn]
-    public string Image { get; private set; }
+    public string Image { get; set; }
 
     [GoogleColumn]
-    public int StackAmount { get; private set; }
+    public int StackAmount { get; set; }
 }

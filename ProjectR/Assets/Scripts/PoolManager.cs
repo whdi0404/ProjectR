@@ -5,7 +5,7 @@ using UnityEngine;
 
 using Object = UnityEngine.Object;
 
-
+[Singleton(CreateInstance = true, DontDestroyOnLoad = true)]
 public class GOPoolManager : SingletonBehaviour<GOPoolManager>
 {
     private class GameObjectPool
@@ -33,17 +33,17 @@ public class GOPoolManager : SingletonBehaviour<GOPoolManager>
         private GameObject original;
         private List<PoolObject> deactiveObjects = new List<PoolObject>();
 
-        public void Init(GameObject original, int initCount)
+        public void Init(GameObject original)
         {
             this.original = original;
-            DontDestroyOnLoad(original);
+            original.transform.SetParent(Instance.transform);
             original.SetActive(false);
         }
 
         private void Push(PoolObject poolObj)
         {
             deactiveObjects.Add(poolObj);
-            DontDestroyOnLoad(poolObj);
+            poolObj.transform.SetParent(Instance.transform);
         }
 
         public GameObject Pop()
@@ -75,13 +75,13 @@ public class GOPoolManager : SingletonBehaviour<GOPoolManager>
 
     private SmartDictionary<string, GameObjectPool> poolDict = new SmartDictionary<string, GameObjectPool>();
 
-    public bool Init(string poolId, GameObject original, int initCount)
+    public bool Init(string poolId, GameObject original)
     {
         if (poolDict.ContainsKey(poolId) == true)
             return false;
 
         GameObjectPool pool = new GameObjectPool();
-        pool.Init(original, initCount);
+        pool.Init(original);
 
         poolDict.Add(poolId, pool);
 

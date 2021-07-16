@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using M4u;
 using Object = UnityEngine.Object;
 
 
@@ -13,6 +14,12 @@ public class UIManager : SingletonBehaviour<UIManager>
     public Transform UIRoot { get => uiRoot; }
 
     private SmartDictionary<Type, GameObject> cache = new SmartDictionary<Type, GameObject>();
+
+    protected override void Awake()
+    {
+        base.Awake();
+        GetComponent<M4uContextRoot>().Context = new UIRootContext();
+    }
 
     public T CreateUIInstance<T>(int hierarchyPos = -1) where T : UIContext
     {

@@ -86,7 +86,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: A2AA.TestSheet.Sheet2.Chidl1
+      Data: A2AA.[Ref]Chidl1
     - Name: $v
       Entry: 7
       Data: 4|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib

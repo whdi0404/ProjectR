@@ -15,7 +15,7 @@ public class TestDescriptor : Descriptor
     [GoogleColumn]
     public string TestCol4 { get; private set; }
 
-    [GoogleRefColumn("TestSheet.Sheet2", "Chidl1")]
+    [GoogleRefColumn(typeof(TestChildTable), "Chidl1")]
     public List<TestChildDescriptor> child1 { get; private set; }
 }
 

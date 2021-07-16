@@ -1,0 +1,56 @@
+using M4u;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class UIRootContext : M4uContext
+{
+    private M4uProperty<MainHUDContext> mainHUD = new M4uProperty<MainHUDContext>();
+    
+    public MainHUDContext MainHUD { get => mainHUD.Value; set => mainHUD.Value = value; }
+
+    public UIRootContext()
+    {
+        MainHUD = new MainHUDContext();
+    }
+}
+
+public class MainHUDContext : M4uContext
+{
+    private M4uProperty<List<CommonButton>> buttons = new M4uProperty<List<CommonButton>>(new List<CommonButton>());
+    public List<CommonButton> Buttons { get => buttons.Value; set => buttons.Value = value; }
+
+    public MainHUDContext()
+    {
+        var allPlanningDescs = TableManager.GetTable<StructurePlanningTable>().All();
+
+        foreach (var planningDesc in allPlanningDescs)
+        {
+            CommonButton commonButton = new CommonButton();
+            commonButton.Name = planningDesc.Name;
+            commonButton.onButtonClick += () =>
+            {
+                PlanningManager.Instance.SetPlan(new StructurePlanning(planningDesc));
+            };
+
+            Buttons.Add(commonButton);
+        }
+    }
+}
+
+public class CommonButton : M4uContext
+{
+    private M4uProperty<string> name = new M4uProperty<string>();
+    private M4uProperty<Sprite> sprite = new M4uProperty<Sprite>();
+
+    public string Name { get => name.Value; set => name.Value = value; }
+    public Sprite Sprite { get => sprite.Value; set => sprite.Value = value; }
+
+    public event Action onButtonClick;
+
+    public void OnButtonClick()
+    {
+        onButtonClick?.Invoke();
+    }
+}
