@@ -12,33 +12,75 @@ public struct PickObject
 [Singleton(CreateInstance = true, DontDestroyOnLoad = true)]
 public class InputManager : SingletonBehaviour<InputManager>
 {
-    public event System.Action<PickObject> onLeftButtonDownPick;
-    public event System.Action<PickObject> onLeftButtonUpPick;
-    public event System.Action<PickObject> onLeftButtonPick;
+    private RObjectSelector selector;
+    //override event
+    private System.Action<PickObject> overrideLeftButtonDownPick;
+    private System.Action<PickObject> overrideLeftButtonUpPick;
+    private System.Action<PickObject> overrideLeftButtonPick;
     public Vector2 CurrentMouseWorldPosition { get => Camera.main.ScreenToWorldPoint(Input.mousePosition); }
 
     public Vector2Int CurrentMouseTilePosition { get => new Vector2Int((int)CurrentMouseWorldPosition.x, (int)CurrentMouseWorldPosition.y); }
 
+    protected override void Awake()
+    {
+        base.Awake();
+        selector = new RObjectSelector();
+    }
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetMouseButton(2) == true)
+        {
+            CameraManager.Instance.OnDrag(CurrentMouseWorldPosition);
+        }
+        if (Input.GetMouseButtonUp(2) == true)
+        {
+            CameraManager.Instance.OnDragEnd();
+        }
+
+        if (Input.mouseScrollDelta != Vector2.zero)
+        {
+            CameraManager.Instance.OnScroll(CurrentMouseWorldPosition, Input.mouseScrollDelta.y);
+        }
+
         if (EventSystem.current.IsPointerOverGameObject() == true)
             return;
 
         if (Input.GetMouseButtonDown(0) == true)
         {
-            Vector3 worldPos = CurrentMouseWorldPosition;
-            onLeftButtonDownPick?.Invoke(Pick(worldPos));
+            PickObject pickObj = Pick(CurrentMouseWorldPosition);
+            if (overrideLeftButtonDownPick != null)
+                overrideLeftButtonDownPick(pickObj);
+            else
+                OnLeftMouseButtonDown(pickObj);
         }
         else if (Input.GetMouseButton(0) == true)
         {
-            Vector3 worldPos = CurrentMouseWorldPosition;
-            onLeftButtonPick?.Invoke(Pick(worldPos));
+            PickObject pickObj = Pick(CurrentMouseWorldPosition);
+            if (overrideLeftButtonPick != null)
+                overrideLeftButtonPick(pickObj);
+            else
+                OnLeftMouseButton(pickObj);
         }
-        else if(Input.GetMouseButtonUp(0) == true)
+        else if (Input.GetMouseButtonUp(0) == true)
         {
-            Vector3 worldPos = CurrentMouseWorldPosition;
-            onLeftButtonUpPick?.Invoke(Pick(worldPos));
+            PickObject pickObj = Pick(CurrentMouseWorldPosition);
+            if (overrideLeftButtonUpPick != null)
+                overrideLeftButtonUpPick(pickObj);
+            else
+                OnLeftMouseButtonUp(pickObj);
+        }
+
+        if (Input.GetMouseButtonDown(1) == true)
+        {
+            PickObject pickObj = Pick(CurrentMouseWorldPosition);
+
+            foreach (var selectedObject in selector.SelectedObjectList)
+            {
+                Pawn pawn = selectedObject as Pawn;
+                if (pawn != null)
+                    pawn.AddDirectOrder(new MovePosition(pickObj.tilePos));
+            }
         }
     }
 
@@ -60,5 +102,52 @@ public class InputManager : SingletonBehaviour<InputManager>
         }
 
         return pickObj;
+    }
+
+    private void OnLeftMouseButtonDown(PickObject pickObj)
+    {
+        if (pickObj.rObj != null)
+        {
+            selector.Clear();
+            selector.AddRObject(pickObj.rObj.RObj);
+        }
+
+        if (Input.GetKey(KeyCode.A) == true)
+        {
+            SpawnTestPawn(CurrentMouseTilePosition);
+        }
+    }
+
+    private void OnLeftMouseButtonUp(PickObject pickObj)
+    {
+
+    }
+
+    private void OnLeftMouseButton(PickObject pickObj)
+    {
+
+    }
+
+    public void OverrideLeftMouseButtonDown(System.Action<PickObject> evt)
+    {
+        overrideLeftButtonDownPick = evt;
+    }
+
+    public void OverrideLeftMouseButtonUp(System.Action<PickObject> evt)
+    {
+        overrideLeftButtonUpPick = evt;
+    }
+
+    public void OverrideLeftMouseButton(System.Action<PickObject> evt)
+    {
+        overrideLeftButtonPick = evt;
+    }
+
+    //TestCode
+    private void SpawnTestPawn(Vector2Int spawnPos)
+    {
+        Pawn pawn = new Pawn(new DataContainer());
+        GameManager.Instance.CreateRObject(pawn);
+        pawn.MapTilePosition = spawnPos;
     }
 }

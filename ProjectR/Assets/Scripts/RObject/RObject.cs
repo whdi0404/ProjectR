@@ -7,7 +7,7 @@ public abstract class RObject
 
     public Vector2 MapPosition { get; set; }
 
-    public Vector2Int MapTilePosition 
+    public Vector2Int MapTilePosition
     { 
         get => new Vector2Int((int)MapPosition.x, (int)MapPosition.y); 
         set => MapPosition = value + new Vector2(0.5f, 0.5f);
@@ -60,6 +60,6 @@ public abstract class RObject
 
         Vector3 v = camera.WorldToViewportPoint(MapPosition);
 
-        return v.x > -1 && v.x < 1 && v.y > -1 && v.y < 1;
+        return v.x > 0 && v.x < 1 && v.y > 0 && v.y < 1;
     }
 }

@@ -15,10 +15,13 @@ public class UIManager : SingletonBehaviour<UIManager>
 
     private SmartDictionary<Type, GameObject> cache = new SmartDictionary<Type, GameObject>();
 
+    public UIRootContext RootContext { get; private set; }
+
     protected override void Awake()
     {
         base.Awake();
-        GetComponent<M4uContextRoot>().Context = new UIRootContext();
+        RootContext = new UIRootContext();
+        GetComponent<M4uContextRoot>().Context = RootContext;
     }
 
     public T CreateUIInstance<T>(int hierarchyPos = -1) where T : UIContext

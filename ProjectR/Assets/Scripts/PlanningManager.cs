@@ -79,9 +79,9 @@ public class PlanningManager : SingletonBehaviour<PlanningManager>
     {
         if(this.plan != null)
             Cancel();
-        InputManager.Instance.onLeftButtonDownPick += plan.LeftButtonDown;
-        InputManager.Instance.onLeftButtonPick += plan.LeftButton;
-        InputManager.Instance.onLeftButtonUpPick += plan.LeftButtonUp;
+        InputManager.Instance.OverrideLeftMouseButtonDown(plan.LeftButtonDown);
+        InputManager.Instance.OverrideLeftMouseButton(plan.LeftButton);
+        InputManager.Instance.OverrideLeftMouseButtonUp(plan.LeftButtonUp);
     }
 
     public void Cancel()
@@ -89,9 +89,9 @@ public class PlanningManager : SingletonBehaviour<PlanningManager>
         if (plan == null)
             return;
         plan.Cancel();
-        InputManager.Instance.onLeftButtonDownPick -= plan.LeftButtonDown;
-        InputManager.Instance.onLeftButtonPick -= plan.LeftButton;
-        InputManager.Instance.onLeftButtonUpPick -= plan.LeftButtonUp;
+        InputManager.Instance.OverrideLeftMouseButtonDown(null);
+        InputManager.Instance.OverrideLeftMouseButton(null);
+        InputManager.Instance.OverrideLeftMouseButtonUp(null);
     }
 
     public void OnGUI()

@@ -49,7 +49,7 @@ public static class TableManager
         string sheetName = compositeTableType.FullName;
         if (tables.TryGetValue(sheetName, out Sheet sheet) == false || sheet == null)
         {
-            sheet = (Sheet)Activator.CreateInstance(compositeTableType);
+            sheet = (Sheet)ScriptableObject.CreateInstance(compositeTableType);
 
             //foreach (Type subSheetType in compositeSheetAttribute.SheetsTypeList)
             //{

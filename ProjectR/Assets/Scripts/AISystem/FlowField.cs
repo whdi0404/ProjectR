@@ -92,16 +92,26 @@ public class FlowField
             {
                 if (flowFieldCells.TryGetValue(neighbour, out FlowFieldCell neighbourCell) == true)
                 {
-                    if (nearCell == null || nearCell.distance < neighbourCell.distance)
+                    if (cur.distance <= neighbourCell.distance)
+                        continue;
+
+                    if (nearCell == null || nearCell.distance > neighbourCell.distance)
                     {
                         nearCell = neighbourCell;
                     }
                 }
             }
-
-            Vector2 dir = nearCell.position - cur.position;
-            dir.Normalize();
-            cur.direction = dir;
+            if (nearCell != null)
+            {
+                Vector2 dir = nearCell.position - cur.position;
+                dir.Normalize();
+                cur.direction = dir;
+            }
+            else
+            {
+                cur.direction = Vector2.zero;
+            }
+            
         }
     }
 

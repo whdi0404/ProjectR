@@ -40,7 +40,6 @@ public class WorldMap : MonoBehaviour
 	private List<TileFragmentData> fragmentDataList = new List<TileFragmentData>();
 	private WorldMapRenderer worldMapRenderer;
 
-	// Start is called before the first frame update
 	private void Start()
 	{
 		TileFragmentData fragmentData = MakeIsland(new Vector2Int(32,32), 256, Random.Range(0, int.MaxValue));
@@ -49,6 +48,11 @@ public class WorldMap : MonoBehaviour
         worldMapRenderer = new WorldMapRenderer();
         worldMapRenderer.Initialize(this, new Vector2Int(64, 64), new Vector2Int(8, 8));
     }
+
+    private void Update()
+    {
+		worldMapRenderer.Update();
+	}
 
     private TileFragmentData MakeIsland(Vector2Int startPos, int mapSize, int seed)
 	{

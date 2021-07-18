@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 [Singleton(CreateInstance = true, DontDestroyOnLoad = true)]
@@ -21,12 +21,18 @@ public class GOPoolManager : SingletonBehaviour<GOPoolManager>
 
             protected void OnDisable()
             {
-                pool.Push(this);
+                Instance.StartCoroutine(After1FrameOnDisable());
             }
 
             protected void OnDestroy()
             {
                 pool.Destroy(this);
+            }
+
+            private IEnumerator After1FrameOnDisable()
+            {
+                yield return null;
+                pool.Push(this);
             }
         }
 
@@ -63,6 +69,7 @@ public class GOPoolManager : SingletonBehaviour<GOPoolManager>
 
             newObj.gameObject.SetActive(true);
             newObj.transform.SetParent(null);
+            SceneManager.MoveGameObjectToScene(newObj.gameObject, SceneManager.GetActiveScene());
 
             return newObj.gameObject;
         }

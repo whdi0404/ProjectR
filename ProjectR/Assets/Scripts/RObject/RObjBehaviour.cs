@@ -5,10 +5,12 @@ public class RObjectBehaviour : MonoBehaviour
     public RObject RObj { get; set; }
 
     private SpriteRenderer spriteRenderer;
+    private new BoxCollider2D collider;
 
-    public void Awake()
+    private void Start()
     {
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+        collider = gameObject.AddComponent<BoxCollider2D>();
     }
 
     public void Init(RObject rObj)
@@ -25,6 +27,13 @@ public class RObjectBehaviour : MonoBehaviour
     public void VisualUpdate()
     {
         RObj.VisualUpdate(Time.deltaTime);
-        spriteRenderer.sprite = RObj.VisualImage;
+
+        if (spriteRenderer.sprite != RObj.VisualImage)
+        {
+            spriteRenderer.sprite = RObj.VisualImage;
+            collider.offset = RObj.VisualImage.bounds.center;
+            collider.size = RObj.VisualImage.bounds.size;
+        }
+            
     }
 }

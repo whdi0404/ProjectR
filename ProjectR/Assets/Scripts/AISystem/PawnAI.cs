@@ -37,6 +37,7 @@ public class MovePosition : ActionTask
     public MovePosition(Vector2Int goalPosition)
     {
         flowField = new FlowField(GameManager.Instance.WorldMap);
+        this.goalPosition = goalPosition;
     }
 
     public override IEnumerable<State> Run(Pawn pawn)
@@ -98,6 +99,8 @@ public class PawnAI
                 runningState = directControl.Run(pawn).GetEnumerator();
             else if (isDirectControl == false)
                 runningState = aiSelector.Run(pawn).GetEnumerator();
+            
+            runningState?.MoveNext();
         }
     }
 
