@@ -79,7 +79,10 @@ public class InputManager : SingletonBehaviour<InputManager>
             {
                 Pawn pawn = selectedObject as Pawn;
                 if (pawn != null)
-                    pawn.AddDirectOrder(new MovePosition(pickObj.tilePos));
+                {
+                    pawn.AI.Reset();
+                    pawn.AI.AddDirectOrder(new MovePosition(pickObj.tilePos));
+                }
             }
         }
     }
@@ -115,6 +118,12 @@ public class InputManager : SingletonBehaviour<InputManager>
         if (Input.GetKey(KeyCode.A) == true)
         {
             SpawnTestPawn(CurrentMouseTilePosition);
+        }
+
+        if (Input.GetKey(KeyCode.S) == true)
+        {
+            var itemDesc = TableManager.GetTable<ItemDataTable>().Find("TestMaterial");
+            GameManager.Instance.CreateItem(CurrentMouseTilePosition, itemDesc, itemDesc.StackAmount / 2);
         }
     }
 

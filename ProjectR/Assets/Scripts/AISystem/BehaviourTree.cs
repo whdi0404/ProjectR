@@ -19,6 +19,16 @@ namespace BT
     {
     }
 
+    public abstract class Decorator : Node
+    {
+        protected Node taskNode;
+
+        public Decorator(Node taskNode)
+        {
+            this.taskNode = taskNode;
+        }
+    }
+
     public abstract class CompositeTask : Node
     {
         protected List<Node> childList = new List<Node>();
@@ -33,27 +43,21 @@ namespace BT
     {
         public override IEnumerable<State> Run(Pawn pawn)
         {
-            State childState = State.Complete;
             foreach (Node child in childList)
             {
                 foreach (State state in child.Run(pawn))
                 {
                     if (state == State.Running)
                         yield return State.Running;
-                    else
+                    else if (state == State.Complete)
                     {
-                        childState = state;
-                        break;
+                        yield return State.Complete;
+                        yield break;
                     }
-                }
-
-                if (childState == State.Complete)
-                {
-                    break;
                 }
             }
 
-            yield return childState;
+            yield return State.Failed;
         }
     }
 
@@ -61,27 +65,78 @@ namespace BT
     {
         public override IEnumerable<State> Run(Pawn pawn)
         {
-            State childState = State.Complete;
             foreach (Node child in childList)
             {
                 foreach (State state in child.Run(pawn))
                 {
                     if (state == State.Running)
                         yield return State.Running;
-                    else
+                    else if (state == State.Failed)
                     {
-                        childState = state;
-                        break;
+                        yield return State.Failed;
+                        yield break;
                     }
-                }
-
-                if (childState == State.Failed)
-                {
-                    break;
                 }
             }
 
-            yield return childState;
+            yield return State.Complete;
         }
+    }
+
+    public abstract class If : Decorator
+    {
+        public If(Node taskNode) : base(taskNode)
+        { 
+        }
+
+        protected abstract bool CheckCondition(Pawn pawn);
+
+        public override IEnumerable<State> Run(Pawn pawn)
+        {
+            if (CheckCondition(pawn) == false)
+                yield return State.Failed;
+
+            foreach (State state in taskNode.Run(pawn))
+            {
+                if (state == State.Running)
+                    yield return State.Running;
+                else if(state == State.Failed)
+                {
+                    yield return State.Failed;
+                    yield break;
+                }
+            }
+
+            yield return State.Complete;
+        }
+
+    }
+
+
+    public abstract class While : Decorator
+    {
+        public While(Node taskNode) : base(taskNode)
+        {
+        }
+
+        protected abstract bool CheckCondition(Pawn pawn);
+
+        public override IEnumerable<State> Run(Pawn pawn)
+        {
+            while (CheckCondition(pawn) == true)
+            {
+                foreach (State state in taskNode.Run(pawn))
+                {
+                    if (state == State.Running)
+                        yield return State.Running;
+                    else if (state == State.Failed)
+                    {
+                        yield return State.Failed;
+                        yield break;
+                    }
+                }
+            }
+        }
+
     }
 }

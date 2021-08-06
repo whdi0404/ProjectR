@@ -114,4 +114,9 @@ public class AtlasObject : SerializedScriptableObject
         if(atlasPropertiesBuffer != null)
             atlasPropertiesBuffer.Release();
     }
+
+    private void OnDisable()
+    {
+        Destroy();
+    }
 }

@@ -7,28 +7,27 @@ public class WorldMapRenderer
 	private WorldMap worldMap;
 
 	private TileGroup[,] tileGroups;
-	private Vector2Int tileGroupSize;
-	private Vector2Int groupAmount;
+	private Vector2Int tileGroupSize { get => worldMap.TileGroupSize; }
+	private Vector2Int tileGroupAmount;
 
 	private AtlasObject atlasObject;
 	private Material tileGroupMaterial;
 
 	private Camera mainCamera;
 
-    public void Initialize(WorldMap worldMap, Vector2Int tileGroupSize, Vector2Int groupAmount)
+    public void Initialize(WorldMap worldMap, Vector2Int tileGroupAmount)
 	{
 		this.worldMap = worldMap;
-		this.tileGroupSize = tileGroupSize;
-		this.groupAmount = groupAmount;
+		this.tileGroupAmount = tileGroupAmount;
 
 		atlasObject = Resources.Load<AtlasObject>("Atlas/TileAtlasObject");
 		tileGroupMaterial = Resources.Load<Material>("Materials/TileMaterial");
 
 		mainCamera = Camera.main;
 
-		tileGroups = new TileGroup[groupAmount.x, groupAmount.y];
-        for (int x = 0; x < groupAmount.x; ++x)
-            for (int y = 0; y < groupAmount.y; ++y)
+		tileGroups = new TileGroup[tileGroupAmount.x, tileGroupAmount.y];
+        for (int x = 0; x < tileGroupAmount.x; ++x)
+            for (int y = 0; y < tileGroupAmount.y; ++y)
             {
                 GameObject go = new GameObject("TileGroup");
                 TileGroup tileGroup = go.AddComponent<TileGroup>();
@@ -47,22 +46,21 @@ public class WorldMapRenderer
 
 	private void UpdateTileGroup(bool first = false)
 	{
-		Vector2Int centerGroupPos =
-				   new Vector2Int((int)(mainCamera.transform.position.x / tileGroupSize.x), (int)(mainCamera.transform.position.y / tileGroupSize.y));
+		Vector2Int centerGroupPos = new Vector2Int((int)(mainCamera.transform.position.x / tileGroupSize.x), (int)(mainCamera.transform.position.y / tileGroupSize.y));
 
 		if (first == false && prevCenterGroupPos == centerGroupPos)
 			return;
 
 		Vector2Int groupMovedVec = centerGroupPos - prevCenterGroupPos;
 
-		Vector2Int groupAmountStartOffset = -groupAmount / 2;
-		for (int x = 0; x < groupAmount.x; ++x)
-			for (int y = 0; y < groupAmount.y; ++y)
+		Vector2Int groupAmountStartOffset = -tileGroupAmount / 2;
+		for (int x = 0; x < tileGroupAmount.x; ++x)
+			for (int y = 0; y < tileGroupAmount.y; ++y)
 			{
 				int osX = x + groupMovedVec.x;
 				int osY = y + groupMovedVec.y;
-				if (first == false && (osX >= 0 && osX < groupAmount.x &&
-					osY >= 0 && osY < groupAmount.y))
+				if (first == false && (osX >= 0 && osX < tileGroupAmount.x &&
+					osY >= 0 && osY < tileGroupAmount.y))
 					continue;
 
 				Vector2Int groupPos = new Vector2Int(
@@ -70,12 +68,12 @@ public class WorldMapRenderer
 				centerGroupPos.y + groupAmountStartOffset.y + y
 				);
 
-				int ix = groupPos.x % groupAmount.x;
-				int iy = groupPos.y % groupAmount.y;
+				int ix = groupPos.x % tileGroupAmount.x;
+				int iy = groupPos.y % tileGroupAmount.y;
 				if (ix < 0)
-					ix += groupAmount.x;
+					ix += tileGroupAmount.x;
 				if (iy < 0)
-					iy += groupAmount.y;
+					iy += tileGroupAmount.y;
 
 				Vector2Int v = groupPos * tileGroupSize;
 
@@ -84,16 +82,20 @@ public class WorldMapRenderer
 					new Vector3Int(v.x, v.y, 0),
 					new Vector3Int(v.x + tileGroupSize.x, v.y + tileGroupSize.y, 0));
 
-				for (int gx = 0; gx < groupBoundary.size.x; ++gx)
-					for (int gy = 0; gy < groupBoundary.size.y; ++gy)
-					{
-						Vector2Int realPos = new Vector2Int(gx + groupBoundary.xMin, gy + groupBoundary.yMin);
-
-						if (worldMap.TryGetTile(realPos, out AtlasInfoDescriptor desc) == true)
+				if (worldMap.TryGetTileFragments(groupPos, out var fragmentData) == true)
+				{
+					for (int gx = 0; gx < groupBoundary.size.x; ++gx)
+						for (int gy = 0; gy < groupBoundary.size.y; ++gy)
+						{
+							var desc = fragmentData.fragmentData[gx + gy * tileGroupSize.x];
 							tileGroups[ix, iy].SetTile(desc.Id, gx, gy);
-						else
-							tileGroups[ix, iy].SetTile("Water", gx, gy);
-					}
+						}
+				}
+				else
+				{
+					tileGroups[ix, iy].SetAllTile("Water");
+				}
+
 				tileGroups[ix, iy].Apply();
 				tileGroups[ix, iy].transform.position = new Vector3(groupBoundary.xMin, groupBoundary.yMin);
 			}

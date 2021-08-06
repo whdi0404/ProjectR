@@ -50,6 +50,9 @@ MonoBehaviour:
     - Name: RequireItems
       Entry: 1
       Data: TestMaterial,5
+    - Name: Workload
+      Entry: 4
+      Data: 10
     - Name: 
       Entry: 8
       Data: 

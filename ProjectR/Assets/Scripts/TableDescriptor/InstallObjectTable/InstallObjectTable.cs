@@ -14,16 +14,6 @@ public class InstallObjectDataDescriptor : Descriptor
     public bool IsBlock { get; set; }
 }
 
-public class WorkBenchDataDescriptor : InstallObjectDataDescriptor
-{
-}
-
-[GoogleWorkSheet("InstallObjectTable", "WorkbenchData")]
-public class WorkBenchDataTable : Sheet<WorkBenchDataDescriptor>
-{
-
-}
-
 [CompositeSheet(typeof(WorkBenchDataTable))]
 public class InstallObjectTable : Sheet<InstallObjectDataDescriptor>
 {

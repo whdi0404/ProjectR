@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 2958d13acb127484b83cb8aae155a9a3, type: 3}
   m_Name: ItemTable.FoodData
-  m_EditorClassIdentifier: Assembly-CSharp::FoodDataTable
+  m_EditorClassIdentifier: 
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 

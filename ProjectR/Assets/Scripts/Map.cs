@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
+public sealed class Map : MonoBehaviour
 {
 	public const string ground = "Ground";
 	public const string sand = "Sand";
@@ -126,29 +126,6 @@ public sealed class Map : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		return -1;
 	}
 
-	public IEnumerable<Vector2Int> GetAdjacentTiles( Vector2Int mapTilePos, bool includeDiagonal)
-    {
-        if (IsCorrectPosition(new Vector2Int(mapTilePos.x - 1, mapTilePos.y)) == true)
-            yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y);
-		if (IsCorrectPosition(new Vector2Int(mapTilePos.x + 1, mapTilePos.y)) == true)
-			yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y);
-		if (IsCorrectPosition(new Vector2Int(mapTilePos.x, mapTilePos.y - 1)) == true)
-			yield return new Vector2Int(mapTilePos.x, mapTilePos.y - 1);
-		if (IsCorrectPosition(new Vector2Int(mapTilePos.x, mapTilePos.y + 1)) == true)
-			yield return new Vector2Int(mapTilePos.x, mapTilePos.y + 1);
-
-		if(includeDiagonal == true)
-		{
-			if (IsCorrectPosition(new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1)) == true)
-				yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1);
-			if (IsCorrectPosition(new Vector2Int(mapTilePos.x - 1, mapTilePos.y + 1)) == true)
-				yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y + 1);
-			if (IsCorrectPosition(new Vector2Int(mapTilePos.x + 1, mapTilePos.y - 1)) == true)
-				yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y - 1);
-			if (IsCorrectPosition(new Vector2Int(mapTilePos.x + 1, mapTilePos.y + 1)) == true)
-				yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y + 1);
-		}
-    }
     public bool IsCorrectPosition(Vector2Int mapTilePos)
     {
 		return mapTilePos.x >= 0 && mapTilePos.x < MapSize && mapTilePos.y >= 0 && mapTilePos.y < MapSize;

@@ -2,6 +2,7 @@ using Sirenix.Serialization;
 using System;
 using System.Collections.Generic;
 using Table;
+using UnityEngine;
 
 public struct RequireItem
 {
@@ -17,8 +18,12 @@ public class StructurePlanningDescriptor : Descriptor
     public InstallObjectDataDescriptor InstallObject { get; private set; }
     [GoogleColumn]
     public string RequireItems { get; private set; }
+    [GoogleColumn]
+    public float Workload { get; private set; }
 
     public List<RequireItem> ReqItemList { get; private set; }
+
+    public Vector2Int Size { get => InstallObject?.Size ?? new Vector2Int(1, 1); }
 
     public string Name 
     {

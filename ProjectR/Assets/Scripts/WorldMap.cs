@@ -3,12 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class WorldMap : MonoBehaviour
+public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 {
+	public Vector2Int TileGroupSize { get; private set; } = new Vector2Int(64, 64);
+
 	public class TileFragmentData
 	{
 		public BoundsInt bounds;
 		public AtlasInfoDescriptor[] fragmentData;
+
+		public TileFragmentData(BoundsInt bounds)
+		{
+			this.bounds = bounds;
+			fragmentData = new AtlasInfoDescriptor[bounds.size.x * bounds.size.y];
+
+			AtlasInfoDescriptor waterDesc = TableManager.GetTable<TileAtlasInfoTable>().Find("Water");
+
+			for (int i = 0; i < fragmentData.Length; ++i)
+				fragmentData[i] = waterDesc;
+		}
 
 		public bool Contains(Vector2Int vector)
 		{
@@ -34,19 +47,30 @@ public class WorldMap : MonoBehaviour
 			}
 			return false;
 		}
+
+		public bool TrySetTile(Vector2Int tilePos, AtlasInfoDescriptor desc)
+		{
+			if (Contains(tilePos) == true)
+			{
+				Vector2Int v = tilePos - new Vector2Int(bounds.min.x, bounds.min.y);
+				fragmentData[v.x + v.y * bounds.size.x] = desc;
+
+				return true;
+			}
+			return false;
+		}
 	}
 
 	//MapData
-	private List<TileFragmentData> fragmentDataList = new List<TileFragmentData>();
+	private SmartDictionary<Vector2Int, TileFragmentData> tileGroupDict = new SmartDictionary<Vector2Int, TileFragmentData>();
 	private WorldMapRenderer worldMapRenderer;
 
 	private void Start()
 	{
-		TileFragmentData fragmentData = MakeIsland(new Vector2Int(32,32), 256, Random.Range(0, int.MaxValue));
-		fragmentDataList.Add(fragmentData);
+		MakeIsland(new Vector2Int(32,32), 256, Random.Range(0, int.MaxValue));
 
         worldMapRenderer = new WorldMapRenderer();
-        worldMapRenderer.Initialize(this, new Vector2Int(64, 64), new Vector2Int(8, 8));
+        worldMapRenderer.Initialize(this, new Vector2Int(8, 8));
     }
 
     private void Update()
@@ -54,7 +78,7 @@ public class WorldMap : MonoBehaviour
 		worldMapRenderer.Update();
 	}
 
-    private TileFragmentData MakeIsland(Vector2Int startPos, int mapSize, int seed)
+    private void MakeIsland(Vector2Int startPos, int mapSize, int seed)
 	{
 		AtlasInfoDescriptor[] islandData = new AtlasInfoDescriptor[mapSize * mapSize];
 
@@ -62,8 +86,8 @@ public class WorldMap : MonoBehaviour
 
 		(Vector2Int, int)[] gradationPoints = new (Vector2Int, int)[20];
 
-		int gradationMinSize = 20;
-		int gradationMaxSize = 200;
+		int gradationMinSize = 10;
+		int gradationMaxSize = 50;
 
 		Random.InitState(seed);
 		for (int i = 0; i < gradationPoints.Length; ++i)
@@ -100,28 +124,27 @@ public class WorldMap : MonoBehaviour
 				}
 				float gradationNoise = noise * maxGradation;
 
+				Vector2Int pos = startPos + new Vector2Int(x, y);
+
 				if (gradationNoise < 0.2f)
-					islandData[x + y * mapSize] = TableManager.GetTable<TileAtlasInfoTable>().Find("Water");
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Water"));
 				else if (gradationNoise < 0.3f)
-					islandData[x + y * mapSize] = TableManager.GetTable<TileAtlasInfoTable>().Find("Sand");
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Sand"));
 				else
-					islandData[x + y * mapSize] = TableManager.GetTable<TileAtlasInfoTable>().Find("Ground");
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Ground"));
 
 				if (gradationNoise >= 0.2f && noise > 0.8f)
-					islandData[x + y * mapSize] = TableManager.GetTable<TileAtlasInfoTable>().Find("Wall");
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Wall"));
 			}
-		TileFragmentData fragData = new TileFragmentData();
-		fragData.bounds = new BoundsInt();
-		fragData.bounds.SetMinMax(new Vector3Int(startPos.x, startPos.y,0), new Vector3Int(startPos.x + mapSize, startPos.y + mapSize, 0));
-		fragData.fragmentData = islandData;
-
-		return fragData;
 	}
 
 	public bool TryGetTile(Vector2Int tilePos, out AtlasInfoDescriptor desc)
 	{
 		desc = null;
-		foreach (var fragmentData in fragmentDataList)
+
+		Vector2Int groupIndex = PositionToGroupIndex(tilePos);
+
+		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
 		{
 			if (fragmentData.TryGetTile(tilePos, out desc) == true)
 				return true;
@@ -130,19 +153,110 @@ public class WorldMap : MonoBehaviour
 		return false;
 	}
 
-	public IEnumerable<Vector2Int> GetAdjacentTiles(Vector2Int mapTilePos, bool includeDiagonal)
+	public bool TryGetTileFragments(Vector2Int groupIndex, out TileFragmentData fragmentData)
 	{
-		yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y);
-		yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y);
-		yield return new Vector2Int(mapTilePos.x, mapTilePos.y - 1);
-		yield return new Vector2Int(mapTilePos.x, mapTilePos.y + 1);
+		if (tileGroupDict.TryGetValue(groupIndex, out fragmentData) == true)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	public float GetTileMovableWeight(Vector2Int pos)
+	{
+		if (TryGetTile(pos, out var desc))
+		{
+			if (desc.MoveWeight == 0)
+				return 0;
+
+			return 1.0f / desc.MoveWeight;
+		}
+
+		return 0;
+	}
+
+	public IEnumerable<(Vector2Int, float)> GetMovableAdjacentTiles(Vector2Int mapTilePos, bool includeDiagonal)
+	{
+		Vector2Int left = new Vector2Int(mapTilePos.x - 1, mapTilePos.y);
+		Vector2Int right = new Vector2Int(mapTilePos.x + 1, mapTilePos.y);
+		Vector2Int down = new Vector2Int(mapTilePos.x, mapTilePos.y - 1);
+		Vector2Int up = new Vector2Int(mapTilePos.x, mapTilePos.y + 1);
+
+		float leftWeight = GetTileMovableWeight(left);
+		float rightWeight = GetTileMovableWeight(right);
+		float downWeight = GetTileMovableWeight(down);
+		float upWeight = GetTileMovableWeight(up);
+
+        if (leftWeight > 0)
+            yield return (left, leftWeight);
+
+		if (rightWeight > 0)
+			yield return (right, rightWeight);
+
+		if (downWeight > 0)
+			yield return (down, downWeight);
+
+		if (upWeight > 0)
+			yield return (up, upWeight);
 
 		if (includeDiagonal == true)
-		{
-			yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1);
-			yield return new Vector2Int(mapTilePos.x - 1, mapTilePos.y + 1);
-			yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y - 1);
-			yield return new Vector2Int(mapTilePos.x + 1, mapTilePos.y + 1);
+        {
+            if (leftWeight > 0 && downWeight > 0)
+            {
+                Vector2Int pos = new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1);
+                float weight = GetTileMovableWeight(pos);
+                if (weight > 0)
+                    yield return (pos, weight);
+            }
+
+			if (leftWeight > 0 && upWeight > 0)
+			{
+				Vector2Int pos = new Vector2Int(mapTilePos.x - 1, mapTilePos.y + 1);
+				float weight = GetTileMovableWeight(pos);
+				if (weight > 0)
+					yield return (pos, weight);
+			}
+
+			if (rightWeight > 0 && downWeight > 0)
+			{
+				Vector2Int pos = new Vector2Int(mapTilePos.x + 1, mapTilePos.y - 1);
+				float weight = GetTileMovableWeight(pos);
+				if (weight > 0)
+					yield return (pos, weight);
+			}
+
+			if (rightWeight > 0 && upWeight > 0)
+			{
+				Vector2Int pos = new Vector2Int(mapTilePos.x + 1, mapTilePos.y + 1);
+				float weight = GetTileMovableWeight(pos);
+				if (weight > 0)
+					yield return (pos, weight);
+			}
 		}
+	}
+
+	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc)
+	{
+		Vector2Int groupIndex = PositionToGroupIndex(pos);
+
+		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
+        {
+            fragmentData.TrySetTile(pos, tileDesc);
+        }
+        else
+        {
+            Vector2Int groupStartPos = groupIndex * TileGroupSize;
+            Vector2Int groupEndPos = groupStartPos + TileGroupSize;
+            BoundsInt bounds = new BoundsInt();
+            bounds.SetMinMax(new Vector3Int(groupStartPos.x, groupStartPos.y, 0), new Vector3Int(groupEndPos.x, groupEndPos.y, 0));
+
+            tileGroupDict[groupIndex] = new TileFragmentData(bounds);
+        }
+    }
+
+	private Vector2Int PositionToGroupIndex(Vector2Int pos)
+	{
+		return new Vector2Int(pos.x / TileGroupSize.x, pos.y / TileGroupSize.y);
 	}
 }

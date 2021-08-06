@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 1019bae831c24624797cb188e986ee4d, type: 3}
   m_Name: ItemTable.MaterialData
-  m_EditorClassIdentifier: Assembly-CSharp::MaterialDataTable
+  m_EditorClassIdentifier: 
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -49,7 +49,7 @@ MonoBehaviour:
       Data: TestMaterial
     - Name: Image
       Entry: 1
-      Data: 
+      Data: ItemTextures/TestMaterial
     - Name: StackAmount
       Entry: 3
       Data: 100
