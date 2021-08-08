@@ -28,15 +28,10 @@ public class StructurePlanning : Planning
     public StructurePlanning(StructurePlanningDescriptor planDesc)
     {
         this.planDesc = planDesc;
-        DataContainer dataContainer = new DataContainer();
-        dataContainer.Add("desc", planDesc);
 
         isStructure = planDesc.Structure != null;
 
-        if (isStructure == false)
-        {
-            planObj = new PlanObject(dataContainer);
-        }
+        planObj = new PlanObject(planDesc);
     }
 
     public override void LeftButtonDown(PickObject pickObject)
@@ -45,8 +40,17 @@ public class StructurePlanning : Planning
     }
 
     public override void LeftButtonUp(PickObject pickObject)
-    {
-    }
+	{
+        for ( int x = Mathf.Min( currentTilePos.x, startTilePos.x ); x <= Mathf.Max( currentTilePos.x, startTilePos.x ); ++x )
+        {
+            for ( int y = Mathf.Min( currentTilePos.y, startTilePos.y ); y <= Mathf.Max( currentTilePos.y, startTilePos.y ); ++y )
+			{
+				var newPlanObj = new PlanObject( planDesc );
+				newPlanObj.MapTilePosition = new Vector2Int( x, y );
+				GameManager.Instance.CreateRObject( newPlanObj );
+			}
+        }
+	}
 
     public override void LeftButton(PickObject pickObject)
     {

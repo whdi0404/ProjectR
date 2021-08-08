@@ -30,14 +30,17 @@ public class AITagSystem
         RObject tagObject;
     }
 
-    private SmartDictionary<Pawn, List<RObject>> tag = new SmartDictionary<Pawn, List<RObject>>();
+    /// <summary>
+    /// object: 파라미터
+    /// </summary>
+    private SmartDictionary<Pawn, List<(RObject, object)>> tag = new SmartDictionary<Pawn, List<(RObject, object)>>();
     private SmartDictionary<RObject, List<Pawn>> tagged = new SmartDictionary<RObject, List<Pawn>>();
 
-    public void Tag(Pawn pawn, RObject rObj)
+    public void Tag(Pawn pawn, RObject rObj, object param = null)
     {
         if (tag[pawn] == null)
-            tag[pawn] = new List<RObject>();
-        tag[pawn].Add(rObj);
+            tag[pawn] = new List<(RObject, object)>();
+		tag[pawn].Add((rObj, param));
 
         if (tagged[rObj] == null)
             tagged[rObj] = new List<Pawn>();
@@ -46,7 +49,7 @@ public class AITagSystem
 
     public void UnTag(Pawn pawn, RObject rObj)
     {
-        if (tag[pawn]?.Remove(rObj) == true)
+        if (tag[pawn]?.RemoveAll(obj=>obj.Item1 == rObj) > 0)
         {
             //Event
         }
@@ -74,7 +77,7 @@ public class AITagSystem
             return;
         foreach (var rObj in tagList)
         {
-            UnTag(pawn, rObj);
+            UnTag(pawn, rObj.Item1);
         }
     }
 
@@ -83,7 +86,7 @@ public class AITagSystem
         return tagged[rObj]?.Count > 0;
     }
 
-    public List<RObject> GetTaggedObjectsOfPawn(Pawn pawn) 
+    public List<(RObject,object)> GetTaggedObjectsOfPawn(Pawn pawn) 
     { 
         return tag[pawn];
     }

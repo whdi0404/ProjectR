@@ -50,6 +50,9 @@ MonoBehaviour:
     - Name: Image
       Entry: 1
       Data: ItemTextures/TestMaterial
+    - Name: Weight
+      Entry: 4
+      Data: 0.01
     - Name: StackAmount
       Entry: 3
       Data: 100

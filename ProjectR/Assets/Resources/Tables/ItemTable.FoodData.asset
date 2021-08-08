@@ -48,11 +48,14 @@ MonoBehaviour:
       Entry: 1
       Data: Salmon
     - Name: Image
-      Entry: 6
+      Entry: 1
       Data: 
+    - Name: Weight
+      Entry: 4
+      Data: 0.05
     - Name: StackAmount
       Entry: 3
-      Data: 0
+      Data: 100
     - Name: 
       Entry: 8
       Data: 

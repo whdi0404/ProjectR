@@ -155,7 +155,7 @@ public class InputManager : SingletonBehaviour<InputManager>
     //TestCode
     private void SpawnTestPawn(Vector2Int spawnPos)
     {
-        Pawn pawn = new Pawn(new DataContainer());
+        Pawn pawn = new Pawn();
         GameManager.Instance.CreateRObject(pawn);
         pawn.MapTilePosition = spawnPos;
     }

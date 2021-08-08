@@ -22,7 +22,7 @@ public class Inventory
 
 	public bool AddItems(ItemDataDescriptor itemDesc, int amount)
 	{
-		if (itemDesc.Weight * amount < RemainWeight)
+		if (itemDesc.Weight * amount > RemainWeight)
 			return false;
 		ItemDict[itemDesc] += amount;
 		return true;
@@ -30,7 +30,7 @@ public class Inventory
 
 	public bool AddItems(ItemObject itemObj, int amount)
 	{
-		if (itemObj.Amount > amount)
+		if (itemObj.Amount < amount)
 			return false;
 
 		if (EnableToAddItemAmount(itemObj.Desc) < amount)
@@ -57,7 +57,21 @@ public class Inventory
 		if (ItemDict[itemDesc] < amount)
 			return false;
 
+		ItemDict[ itemDesc ] -= amount;
 		GameManager.Instance.CreateItem(pos, itemDesc, amount);
+		return true;
+	}
+
+	public bool MoveToOtherInventory(Inventory inventory, ItemDataDescriptor itemDesc, int amount)
+	{
+		if ( ItemDict[ itemDesc ] < amount )
+			return false;
+
+		if ( inventory.RemainWeight < itemDesc.Weight * amount )
+			return false;
+
+		ItemDict[ itemDesc ] -= amount;
+		inventory.AddItems(itemDesc, amount);
 		return true;
 	}
 
@@ -68,7 +82,7 @@ public class Inventory
 
     public int EnableToAddItemAmount(ItemDataDescriptor itemDesc)
     {
-        return Mathf.FloorToInt(RemainWeight / itemDesc.Weight);
+        return itemDesc.Weight == 0 ? 10000 : Mathf.FloorToInt(RemainWeight / itemDesc.Weight);
     }
 
 	public void SetWeightLimit(float weightLimit)
@@ -89,6 +103,7 @@ public class Pawn : RObject
 	{
 		AI = new PawnAI(this);
 		Inventory = new Inventory();
+		Inventory.SetWeightLimit( 10.0f );
 		VisualImage = Resources.Load<Sprite>("PawnTextures/pawn");
 	}
 

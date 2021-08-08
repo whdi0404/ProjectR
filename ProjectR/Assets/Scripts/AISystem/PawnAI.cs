@@ -22,7 +22,7 @@ public class Build : ActionTask
         if (taggedList == null || taggedList.Count == 0)
             yield return State.Failed;
 
-        PlanObject planObject = taggedList[0] as PlanObject;
+        PlanObject planObject = taggedList[0].Item1 as PlanObject;
 
         if (planObject?.IsAdjeceny(pawn) == false)
             yield return State.Failed;
@@ -43,19 +43,15 @@ public class Build : ActionTask
 //재료 옮기기
 public class TagBuildTransport : ActionTask
 {
-    private SmartDictionary<ItemDataDescriptor, List<ItemObject>> nearestItemList;
-    private SmartDictionary<ItemDataDescriptor, int> itemAmount;
-    private SmartDictionary<ItemDataDescriptor, int> inventoryItem;
     private float remainWeight;
 
     public TagBuildTransport()
     { 
     }
 
-    protected override bool Run(Pawn pawn)
+    public override IEnumerable<State> Run(Pawn pawn)
     {
-        nearestItemList = new SmartDictionary<ItemDataDescriptor, List<ItemObject>>();
-        inventoryItem = new SmartDictionary<ItemDataDescriptor, int>(pawn.Inventory.ItemDict);
+        SmartDictionary<ItemDataDescriptor, List<ItemObject>> nearestItemList = new SmartDictionary<ItemDataDescriptor, List<ItemObject>>();
         remainWeight = pawn.Inventory.RemainWeight;
 
         foreach (ItemObject itemObj in GameManager.Instance.GetNearestRObjectsFromType<ItemObject>(pawn.MapTilePosition))
@@ -70,28 +66,126 @@ public class TagBuildTransport : ActionTask
                 itemList.Add(itemObj);
             }
         }
-
-        PlanObject firstTarget = null;
+        //{PlanObj 하나 Tag하고, 아이템 Tag, 줍기} while로 반복?
         foreach (PlanObject planObj in GameManager.Instance.GetNearestRObjectsFromType<PlanObject>(pawn.MapTilePosition))
         {
             List<(Vector2Int, float)> tmpPath = new List<(Vector2Int, float)>();
             var remainItemList = planObj.GetRemainReqItemList();
-            if (GameManager.Instance.GetAITagSystem(AITagSubject.Build).IsTagged(planObj) == false 
-                && (firstTarget == null || VectorExt.Get8DirectionLength(pawn.MapTilePosition, planObj.MapTilePosition) <= 5)
+            if ( GameManager.Instance.GetAITagSystem( AITagSubject.Build ).IsTagged( planObj ) == false
+                //첫번째로 Tag된 planobj를 기준으로 다시  설정할까
+                //&& (firstTarget == null || VectorExt.Get8DirectionLength(pawn.MapTilePosition, planObj.MapTilePosition) <= 5)
                 && remainItemList.Count > 0
-                && GameManager.Instance.FindPath(pawn.MapTilePosition, planObj.MapTilePosition, ref tmpPath) == true)
+                && GameManager.Instance.FindPath( pawn.MapTilePosition, planObj.MapTilePosition, ref tmpPath ) == true )
             {
+                //float reqWeight = remainItemList.Sum( reqItem => reqItem.ItemDesc.Weight * reqItem.Amount );
+                bool tagItem = false;
+                foreach ( var reqItem in remainItemList )
+                {
+                    if ( nearestItemList[ reqItem.ItemDesc ]?.Sum( itemObj => itemObj.Amount ) > reqItem.Amount )
+                    {
+                        if ( remainWeight < reqItem.ItemDesc.Weight )
+                            continue;
 
+                        int remainReqItemAmount = reqItem.Amount;
+                        foreach ( var itemObj in nearestItemList[ reqItem.ItemDesc ] )
+                        {
+                            int grabAmount = Mathf.Min( remainReqItemAmount, itemObj.Amount );
+
+                            remainReqItemAmount -= grabAmount;
+                            remainWeight -= grabAmount * reqItem.ItemDesc.Weight;
+                            GameManager.Instance.GetAITagSystem( AITagSubject.PickupItem ).Tag( pawn, itemObj, grabAmount );
+
+                            if ( remainWeight <= 0 || remainReqItemAmount <= 0 )
+                                break;
+                        }
+
+                        tagItem = true;
+                    }
+                }
+
+                if ( tagItem == true )
+                {
+                    GameManager.Instance.GetAITagSystem( AITagSubject.Build ).Tag( pawn, planObj );
+                    yield return State.Complete;
+                    yield break;
+                }
             }
         }
 
-        yield return State.Complete;
+        yield return State.Failed;
     }
 }
 
 public class PickupItem : Move
 {
-    
+	(ItemObject, int) pickupItem;
+	protected override bool TryFindPath( Pawn pawn, ref List<(Vector2Int, float)> path )
+	{
+        var taggedItemList = GameManager.Instance.GetAITagSystem( AITagSubject.PickupItem ).GetTaggedObjectsOfPawn( pawn );
+        if ( taggedItemList == null || taggedItemList.Count == 0 ||taggedItemList[0].Item1 is ItemObject == false )
+            return false;
+
+		pickupItem = (taggedItemList[ 0 ].Item1 as ItemObject, ( int )taggedItemList[ 0 ].Item2);
+		return GameManager.Instance.FindPath( pawn.MapTilePosition, pickupItem.Item1.MapTilePosition, ref path );
+	}
+
+	public override IEnumerable<State> Run( Pawn pawn )
+	{
+        foreach ( var state in base.Run( pawn ) )
+        {
+            yield return state;
+            if ( state == State.Complete )
+                break;
+            if ( state == State.Failed )
+                yield break;
+        }
+
+        GameManager.Instance.GetAITagSystem( AITagSubject.PickupItem ).UnTag( pawn, pickupItem.Item1 );
+        pawn.Inventory.AddItems( pickupItem.Item1, pickupItem.Item2 );
+
+        yield return State.Complete;
+    }
+}
+
+public class HaulPlanObject : Move
+{
+    PlanObject haulTarget = null;
+	protected override bool TryFindPath( Pawn pawn, ref List<(Vector2Int, float)> path )
+	{
+        var taggedItemList = GameManager.Instance.GetAITagSystem( AITagSubject.Build ).GetTaggedObjectsOfPawn( pawn );
+        if ( taggedItemList == null || taggedItemList.Count == 0 || taggedItemList[ 0 ].Item1 is PlanObject == false )
+            return false;
+
+        haulTarget = taggedItemList[ 0 ].Item1 as PlanObject;
+        
+        //IF노드로 뺼까
+        var remainReqItemList = haulTarget.GetRemainReqItemList();
+        if ( remainReqItemList.Exists( reqItem => pawn.Inventory.GetItemAmount( reqItem.ItemDesc ) > 0 ) == false )
+            return false;
+
+        return GameManager.Instance.FindPath( pawn.MapTilePosition, haulTarget.MapTilePosition, ref path );
+    }
+
+    public override IEnumerable<State> Run( Pawn pawn )
+    {
+        foreach ( var state in base.Run( pawn ) )
+        {
+            yield return state;
+            if ( state == State.Complete )
+                break;
+            if ( state == State.Failed )
+                yield break;
+        }
+
+        GameManager.Instance.GetAITagSystem( AITagSubject.Build ).UnTag( pawn, haulTarget );
+        foreach ( var remainItem in haulTarget.GetRemainReqItemList() )
+        {
+			int haulAmount = Mathf.Min( remainItem.Amount, pawn.Inventory.GetItemAmount( remainItem.ItemDesc ) );
+			pawn.Inventory.MoveToOtherInventory( haulTarget.Inventory, remainItem.ItemDesc, haulAmount );
+		}
+
+		yield return State.Complete;
+    }
 }
 
 //이동
@@ -225,6 +319,18 @@ public class PawnAI
         this.pawn = pawn;
         aiSelector = new Selector();
         directControl = new DirectControl();
+        
+        Selector buildSelector = new Selector();
+        {
+            Sequence buildHaulSequence = new Sequence();
+            {
+                buildHaulSequence.AddChild( new TagBuildTransport() );
+                buildHaulSequence.AddChild( new PickupItem() );
+            }
+            buildSelector.AddChild( buildHaulSequence );
+            buildSelector.AddChild( new HaulPlanObject() );
+        }
+        aiSelector.AddChild( buildSelector );
     }
 
     public void UpdateTick()
