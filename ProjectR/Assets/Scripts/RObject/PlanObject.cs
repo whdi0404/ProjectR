@@ -33,7 +33,7 @@ public class PlanObject : RObject
         this.planningDesc = planningDesc;
 
         Inventory = new Inventory();
-        Inventory.SetWeightLimit(planningDesc.ReqItemList.Sum(reqItem => reqItem.ItemDesc.Weight * reqItem.Amount));
+        Inventory.SetWeightLimit(0);
 
         if (planningDesc.Structure != null)
         {
@@ -59,6 +59,7 @@ public class PlanObject : RObject
         if (RemainWorkload <= 0)
         {
             //Todo: PlanningDesc로 물건 생성
+            GameManager.Instance.DestroyRObject(this);
         }
     }
 

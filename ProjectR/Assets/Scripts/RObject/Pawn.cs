@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ public class Inventory
 		}
 	}
 
-	public float RemainWeight { get => WeightLimit - Weight; }
+	public float RemainWeight { get => WeightLimit == 0 ? float.MaxValue : WeightLimit - Weight; }
 
 	public bool AddItems(ItemDataDescriptor itemDesc, int amount)
 	{
@@ -38,6 +39,8 @@ public class Inventory
 
 		if (AddItems(itemObj.Desc, amount) == false)
 			return false;
+
+		itemObj.Amount -= amount;
 
 		if (itemObj.Amount == 0)
 			GameManager.Instance.DestroyRObject(itemObj);
@@ -116,5 +119,13 @@ public class Pawn : RObject
 	public override void VisualUpdate(float dt)
 	{
 
+	}
+
+    public override void Destroy()
+    {
+        base.Destroy();
+
+		foreach (AITagSubject tag in Enum.GetValues(typeof(AITagSubject)))
+			GameManager.Instance.GetAITagSystem(tag).UntagAllTagOfPawn(this);
 	}
 }

@@ -45,16 +45,20 @@ namespace BT
         {
             foreach (Node child in childList)
             {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 foreach (State state in child.Run(pawn))
                 {
                     if (state == State.Running)
                         yield return State.Running;
+                    else if (state == State.Failed)
+                        break;
                     else if (state == State.Complete)
                     {
                         yield return State.Complete;
                         yield break;
                     }
                 }
+                Debug.Log($"{child.ToString()}: {stopwatch.ElapsedMilliseconds}ms");
             }
 
             yield return State.Failed;
@@ -67,16 +71,20 @@ namespace BT
         {
             foreach (Node child in childList)
             {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 foreach (State state in child.Run(pawn))
                 {
                     if (state == State.Running)
                         yield return State.Running;
+                    else if (state == State.Complete)
+                        break;
                     else if (state == State.Failed)
                     {
                         yield return State.Failed;
                         yield break;
                     }
                 }
+                Debug.Log($"{child.ToString()}: {stopwatch.ElapsedMilliseconds}ms");
             }
 
             yield return State.Complete;
@@ -100,6 +108,8 @@ namespace BT
             {
                 if (state == State.Running)
                     yield return State.Running;
+                else if (state == State.Complete)
+                    break;
                 else if(state == State.Failed)
                 {
                     yield return State.Failed;
@@ -129,6 +139,8 @@ namespace BT
                 {
                     if (state == State.Running)
                         yield return State.Running;
+                    else if (state == State.Complete)
+                        break;
                     else if (state == State.Failed)
                     {
                         yield return State.Failed;

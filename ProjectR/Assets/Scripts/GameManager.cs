@@ -64,8 +64,9 @@ public class AITagSystem
         var taggedList = tagged[rObj];
         if (taggedList == null)
             return;
-        foreach (var pawn in taggedList)
+        for (int i= taggedList.Count - 1; i >= 0; --i)
         {
+            var pawn = taggedList[i];
             UnTag(pawn, rObj);
         }
     }
@@ -75,9 +76,11 @@ public class AITagSystem
         var tagList = tag[pawn];
         if (tagList == null)
             return;
-        foreach (var rObj in tagList)
+
+        for (int i = tagList.Count - 1; i >= 0; --i)
         {
-            UnTag(pawn, rObj.Item1);
+            var rObj = tagList[i].Item1;
+            UnTag(pawn, rObj);
         }
     }
 
@@ -100,6 +103,8 @@ public class GameManager : SingletonBehaviour<GameManager>
     public WorldMap WorldMap { get; private set; }
     public SmartDictionary<ulong, RObject> RObjList { get; private set; } = new SmartDictionary<ulong, RObject>();
 
+    private List<ulong> destroyList = new List<ulong>();
+
     private Dictionary<AITagSubject, AITagSystem> tagSystemDict = new Dictionary<AITagSubject, AITagSystem>();
 
     private PathFinder<Vector2Int> pathFinder = new PathFinder<Vector2Int>((a, b) => VectorExt.Get8DirectionLength(a,b));
@@ -114,8 +119,20 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     private void Update()
     {
+        foreach (var uniqueId in destroyList)
+        {
+            RObjList[uniqueId]?.Destroy();
+            RObjList.Remove(uniqueId);
+        }
+
         foreach (var rObj in RObjList.Values)
             rObj.Update(Time.deltaTime);
+    }
+
+    private void LateUpdate()
+    {
+        foreach (var rObj in RObjList.Values)
+            rObj.VisuaiUpdate();
     }
 
     public void CreateRObject(RObject rObj)
@@ -128,14 +145,12 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     public void DestroyRObject(RObject rObj)
     {
-        rObj.Destroy();
-        RObjList.Remove(rObj.UniqueId);
+        destroyList.Add(rObj.UniqueId);
     }
 
     public void DestroyRObject(ulong uniqueId)
     {
-        RObjList[uniqueId]?.Destroy();
-        RObjList.Remove(uniqueId);
+        destroyList.Add(uniqueId);
     }
 
     public void CreateItem(Vector2Int pos, ItemDataDescriptor itemDesc, int amount)

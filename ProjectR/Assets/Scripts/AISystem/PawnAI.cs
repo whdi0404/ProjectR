@@ -4,32 +4,79 @@ using UnityEngine;
 using BT;
 using System.Linq;
 using System;
+using System.Diagnostics;
 
 //밥먹기
 
 //잠자기
 
 //건설하기
-public class Build : ActionTask
+public class TagBuild : ActionTask
 {
-    public Build()
+    public override IEnumerable<State> Run(Pawn pawn)
     {
+        var taggedList = GameManager.Instance.GetAITagSystem(AITagSubject.Build).GetTaggedObjectsOfPawn(pawn);
+        if (taggedList != null && taggedList.Count > 0)
+            yield return State.Complete;
+
+        foreach (PlanObject planObj in GameManager.Instance.GetNearestRObjectsFromType<PlanObject>(pawn.MapTilePosition))
+        {
+            List<(Vector2Int, float)> tmpPath = new List<(Vector2Int, float)>();
+            if (GameManager.Instance.GetAITagSystem(AITagSubject.Build).IsTagged(planObj) == false
+                && planObj.GetRemainReqItemList().Count == 0
+                && GameManager.Instance.FindPath(pawn.MapTilePosition, planObj.MapTilePosition, ref tmpPath) == true)
+            {
+                GameManager.Instance.GetAITagSystem(AITagSubject.Build).Tag(pawn, planObj);
+                yield return State.Complete;
+
+            }
+        }
+
+        yield return State.Failed;
+    }
+}
+
+public class Build : Move
+{
+    private PlanObject planObject;
+
+    protected override bool TryFindPath(Pawn pawn, ref List<(Vector2Int, float)> path)
+    {
+        var taggedList = GameManager.Instance.GetAITagSystem(AITagSubject.Build).GetTaggedObjectsOfPawn(pawn);
+        if (taggedList == null || taggedList.Count == 0)
+            return false;
+
+        planObject = taggedList[0].Item1 as PlanObject;
+        foreach (var position in planObject.GetNearestAdjecentTile(pawn.MapTilePosition, false))
+        {
+            if (GameManager.Instance.FindPath(pawn.MapTilePosition, position, ref path) == true)
+                return true;
+        }
+
+        return false;
     }
 
     public override IEnumerable<State> Run(Pawn pawn)
     {
+        foreach (var state in base.Run(pawn))
+        {
+            if (state == State.Complete)
+                break;
+            yield return state;
+        }
+
         var taggedList = GameManager.Instance.GetAITagSystem(AITagSubject.Build).GetTaggedObjectsOfPawn(pawn);
         if (taggedList == null || taggedList.Count == 0)
             yield return State.Failed;
 
-        PlanObject planObject = taggedList[0].Item1 as PlanObject;
+        planObject = taggedList[0].Item1 as PlanObject;
 
         if (planObject?.IsAdjeceny(pawn) == false)
             yield return State.Failed;
 
         while (planObject.RemainWorkload > 0)
         {
-            planObject.Work(Time.deltaTime * 1);
+            planObject.Work(Time.deltaTime * 5.0f);
             yield return State.Running;
         }
 
@@ -43,16 +90,14 @@ public class Build : ActionTask
 //재료 옮기기
 public class TagBuildTransport : ActionTask
 {
-    private float remainWeight;
-
-    public TagBuildTransport()
-    { 
-    }
-
     public override IEnumerable<State> Run(Pawn pawn)
     {
+        //var taggedList = GameManager.Instance.GetAITagSystem(AITagSubject.Build).GetTaggedObjectsOfPawn(pawn);
+        //if (taggedList != null && taggedList.Count > 0)
+        //    yield return State.Complete;
+
         SmartDictionary<ItemDataDescriptor, List<ItemObject>> nearestItemList = new SmartDictionary<ItemDataDescriptor, List<ItemObject>>();
-        remainWeight = pawn.Inventory.RemainWeight;
+        float remainWeight = pawn.Inventory.RemainWeight;
 
         foreach (ItemObject itemObj in GameManager.Instance.GetNearestRObjectsFromType<ItemObject>(pawn.MapTilePosition))
         {
@@ -81,7 +126,7 @@ public class TagBuildTransport : ActionTask
                 bool tagItem = false;
                 foreach ( var reqItem in remainItemList )
                 {
-                    if ( nearestItemList[ reqItem.ItemDesc ]?.Sum( itemObj => itemObj.Amount ) > reqItem.Amount )
+                    if ( nearestItemList[ reqItem.ItemDesc ]?.Sum( itemObj => itemObj.Amount ) >= reqItem.Amount )
                     {
                         if ( remainWeight < reqItem.ItemDesc.Weight )
                             continue;
@@ -133,11 +178,9 @@ public class PickupItem : Move
 	{
         foreach ( var state in base.Run( pawn ) )
         {
-            yield return state;
-            if ( state == State.Complete )
+            if (state == State.Complete)
                 break;
-            if ( state == State.Failed )
-                yield break;
+            yield return state;
         }
 
         GameManager.Instance.GetAITagSystem( AITagSubject.PickupItem ).UnTag( pawn, pickupItem.Item1 );
@@ -170,11 +213,9 @@ public class HaulPlanObject : Move
     {
         foreach ( var state in base.Run( pawn ) )
         {
-            yield return state;
-            if ( state == State.Complete )
+            if (state == State.Complete)
                 break;
-            if ( state == State.Failed )
-                yield break;
+            yield return state;
         }
 
         GameManager.Instance.GetAITagSystem( AITagSubject.Build ).UnTag( pawn, haulTarget );
@@ -320,17 +361,27 @@ public class PawnAI
         aiSelector = new Selector();
         directControl = new DirectControl();
         
-        Selector buildSelector = new Selector();
+        //건설 운반
+        Selector buildHaulSelector = new Selector();
         {
-            Sequence buildHaulSequence = new Sequence();
+            Sequence pickupSequence = new Sequence();
             {
-                buildHaulSequence.AddChild( new TagBuildTransport() );
-                buildHaulSequence.AddChild( new PickupItem() );
+                pickupSequence.AddChild( new TagBuildTransport() );
+                pickupSequence.AddChild( new PickupItem() );
             }
-            buildSelector.AddChild( buildHaulSequence );
-            buildSelector.AddChild( new HaulPlanObject() );
+            buildHaulSelector.AddChild( pickupSequence );
+
+            buildHaulSelector.AddChild( new HaulPlanObject() );
         }
-        aiSelector.AddChild( buildSelector );
+        aiSelector.AddChild(buildHaulSelector);
+
+        //건설
+        Sequence buildSequence = new Sequence();
+        {
+            buildSequence.AddChild(new TagBuild());
+            buildSequence.AddChild(new Build());
+        }
+        aiSelector.AddChild(buildSequence);
     }
 
     public void UpdateTick()

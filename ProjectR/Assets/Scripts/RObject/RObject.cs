@@ -35,7 +35,7 @@ public abstract class RObject
 
     private RObjectBehaviour behaviour;
 
-    public virtual void Update(float dt)
+    public void VisuaiUpdate()
     {
         if (behaviour == null && IsInCamera())
         {
@@ -44,20 +44,28 @@ public abstract class RObject
 
             behaviour = bh;
         }
-        else if(behaviour != null && !IsInCamera())
+        else if (behaviour != null && !IsInCamera())
         {
             behaviour.gameObject.SetActive(false);
             behaviour = null;
         }
     }
 
-    internal void Destroy()
+    public virtual void Update(float dt)
+    {
+        
+    }
+
+    public virtual void Destroy()
     {
         if (behaviour != null)
         { 
             behaviour.gameObject.SetActive(false);
             behaviour = null;
         }
+
+        foreach (AITagSubject tag in Enum.GetValues(typeof(AITagSubject)))
+            GameManager.Instance.GetAITagSystem(tag).UnTagAll(this);
     }
 
     public abstract void VisualUpdate(float dt);
@@ -91,7 +99,7 @@ public abstract class RObject
         }
 
 
-        for (int x = 0; x < Size.x; ++x)
+        for (int x = -1; x <= Size.x; ++x)
         {
             Vector2Int tile = MapTilePosition + new Vector2Int(x, -1);
             NearNode nearNode = new NearNode
@@ -101,7 +109,7 @@ public abstract class RObject
             };
             queue.Enqueue(nearNode);
 
-            tile = MapTilePosition + new Vector2Int(x, Size.y + 1);
+            tile = MapTilePosition + new Vector2Int(x, Size.y);
             nearNode = new NearNode
             {
                 position = tile,
@@ -110,7 +118,7 @@ public abstract class RObject
             queue.Enqueue(nearNode);
         }
 
-        for (int y = 0; y < Size.y; ++y)
+        for (int y = -1; y <= Size.y; ++y)
         {
             Vector2Int tile = MapTilePosition + new Vector2Int(0, y);
             NearNode nearNode = new NearNode
