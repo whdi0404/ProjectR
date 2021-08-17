@@ -27,4 +27,15 @@ public static class VectorExt
     {
         return new Vector2Int((int)v.x, (int)v.y);
     }
+    public static bool Intersects(this BoundsInt a, BoundsInt b)
+    {
+        Bounds boundsVec = new Bounds(a.center, a.size);
+        return boundsVec.Intersects(new Bounds(b.center, b.size));
+    }
+
+    public static bool TileContains(this BoundsInt bounds, Vector2Int vector)
+    {
+        return bounds.xMin <= vector.x && bounds.xMax > vector.x &&
+        bounds.yMin <= vector.y && bounds.yMax > vector.y;
+    }
 }

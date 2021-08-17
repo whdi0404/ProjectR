@@ -23,13 +23,6 @@ public enum AITagSubject
 
 public class AITagSystem
 {
-
-    class Tagging
-    {
-        Pawn ai;
-        RObject tagObject;
-    }
-
     /// <summary>
     /// object: 파라미터
     /// </summary>
@@ -106,8 +99,6 @@ public class GameManager : SingletonBehaviour<GameManager>
     private List<ulong> destroyList = new List<ulong>();
 
     private Dictionary<AITagSubject, AITagSystem> tagSystemDict = new Dictionary<AITagSubject, AITagSystem>();
-
-    private PathFinder<Vector2Int> pathFinder = new PathFinder<Vector2Int>((a, b) => VectorExt.Get8DirectionLength(a,b));
 
     protected override void Start()
     {
@@ -257,16 +248,20 @@ public class GameManager : SingletonBehaviour<GameManager>
         }
     }
 
-    public IEnumerable<T> GetNearestRObjectsFromType<T>(Vector2Int pos) where T : RObject
+    public IEnumerable<T> GetNearestRObjectsFromType<T>(Vector2Int pos, Predicate<RObject> predicate = null) where T : RObject
     {
         PriorityQueue<NearNode_RObj<T>> queue = new PriorityQueue<NearNode_RObj<T>>();
         foreach (var rObj in GetRObjectsFromType<T>())
         {
+            if (predicate != null && predicate(rObj) == false)
+                continue;
+
             NearNode_RObj<T> nearNode = new NearNode_RObj<T>
             {
                 rObj = rObj,
                 distance = Vector2Int.Distance(pos, rObj.MapTilePosition)
             };
+
             queue.Enqueue(nearNode);
         }
 
@@ -276,6 +271,10 @@ public class GameManager : SingletonBehaviour<GameManager>
 
     public bool FindPath(Vector2Int start, Vector2Int dest, ref List<(Vector2Int, float)> path, int maxSearch = 10000)
     {
-        return pathFinder.FindPath(WorldMap, start, dest, ref path, maxSearch);
+        return WorldMap.PathFinder.FindPath(WorldMap, start, dest, ref path, maxSearch);
+    }
+    public bool IsReachable(Vector2Int start, Vector2Int dest)
+    {
+        return WorldMap.RegionSystem.IsReachable(start, dest);
     }
 }

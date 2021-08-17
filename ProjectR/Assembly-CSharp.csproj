@@ -143,6 +143,10 @@
     <Compile Include="Assets\M4u\Scripts\M4uDisableAttribute.cs" />
     <Compile Include="Assets\Scripts\GoogleSheet\CompositeSheetAttribute.cs" />
     <Compile Include="Assets\Scripts\AISystem\RegionSystem.cs" />
+    <Compile Include="Assets\Scripts\Utilities\GUIExt.cs" />
+    <Compile Include="Assets\Scripts\Inventory.cs" />
+    <Compile Include="Assets\Scripts\DeveloperTool.cs" />
+    <Compile Include="Assets\Scripts\RObject\InstallObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

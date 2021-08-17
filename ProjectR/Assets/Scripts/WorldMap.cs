@@ -23,22 +23,15 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 				fragmentData[i] = waterDesc;
 		}
 
-		public bool Contains(Vector2Int vector)
-		{
-			return bounds.xMin <= vector.x && bounds.xMax > vector.x &&
-			bounds.yMin <= vector.y && bounds.yMax > vector.y;
-		}
-
 		public bool Intersects(BoundsInt b)
         {
-            Bounds boundsVec = new Bounds(bounds.center, bounds.size);
-            return boundsVec.Intersects(new Bounds(b.center, b.size));
+			return bounds.Intersects(b);
         }
 
 		public bool TryGetTile(Vector2Int tilePos, out AtlasInfoDescriptor desc)
 		{
 			desc = null;
-			if (Contains(tilePos) == true)
+			if (bounds.TileContains(tilePos) == true)
             {
                 Vector2Int v = tilePos - new Vector2Int(bounds.min.x, bounds.min.y);
 				desc = fragmentData[v.x + v.y * bounds.size.x];
@@ -50,7 +43,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 		public bool TrySetTile(Vector2Int tilePos, AtlasInfoDescriptor desc)
 		{
-			if (Contains(tilePos) == true)
+			if (bounds.TileContains(tilePos) == true)
 			{
 				Vector2Int v = tilePos - new Vector2Int(bounds.min.x, bounds.min.y);
 				fragmentData[v.x + v.y * bounds.size.x] = desc;
@@ -64,6 +57,11 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 	//MapData
 	private SmartDictionary<Vector2Int, TileFragmentData> tileGroupDict = new SmartDictionary<Vector2Int, TileFragmentData>();
 	private WorldMapRenderer worldMapRenderer;
+	public RegionSystem RegionSystem { get; private set; }
+
+	public IEnumerable<Vector2Int> ExistGroupList { get => tileGroupDict.Keys; }
+
+	public PathFinder<Vector2Int> PathFinder { get; private set; } = new PathFinder<Vector2Int>((a, b) => VectorExt.Get8DirectionLength(a, b));
 
 	private void Start()
 	{
@@ -71,7 +69,17 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
         worldMapRenderer = new WorldMapRenderer();
         worldMapRenderer.Initialize(this, new Vector2Int(8, 8));
-    }
+
+		RegionSystem = new RegionSystem();
+		RegionSystem.Initialize(this);
+
+		Bounds b = new Bounds();
+		b.SetMinMax(new Vector3(0, 0), new Vector3(1, 1));
+		Bounds b2 = new Bounds();
+		b2.SetMinMax(new Vector3(0, 1), new Vector3(1, 2));
+
+		Debug.Log(b.Intersects(b2));
+	}
 
     private void Update()
     {
@@ -127,14 +135,14 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 				Vector2Int pos = startPos + new Vector2Int(x, y);
 
 				if (gradationNoise < 0.2f)
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Water"));
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Water"), false);
 				else if (gradationNoise < 0.3f)
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Sand"));
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Sand"), false);
 				else
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Ground"));
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Ground"), false);
 
 				if (gradationNoise >= 0.2f && noise > 0.8f)
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Wall"));
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Wall"), false);
 			}
 	}
 
@@ -142,7 +150,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 	{
 		desc = null;
 
-		Vector2Int groupIndex = PositionToGroupIndex(tilePos);
+		Vector2Int groupIndex = TilePosToGroupIndex(tilePos);
 
 		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
 		{
@@ -236,9 +244,9 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		}
 	}
 
-	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc)
+	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc, bool recreateRegion = true)
 	{
-		Vector2Int groupIndex = PositionToGroupIndex(pos);
+		Vector2Int groupIndex = TilePosToGroupIndex(pos);
 
 		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
         {
@@ -253,9 +261,14 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
             tileGroupDict[groupIndex] = new TileFragmentData(bounds);
         }
-    }
 
-	private Vector2Int PositionToGroupIndex(Vector2Int pos)
+		if (recreateRegion == true)
+		{
+			RegionSystem.CalculateLocalRegion(groupIndex);
+		}
+	}
+
+	public Vector2Int TilePosToGroupIndex(Vector2Int pos)
 	{
 		return new Vector2Int(pos.x / TileGroupSize.x, pos.y / TileGroupSize.y);
 	}

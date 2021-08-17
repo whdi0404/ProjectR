@@ -21,10 +21,9 @@ public class TagBuild : ActionTask
 
         foreach (PlanObject planObj in GameManager.Instance.GetNearestRObjectsFromType<PlanObject>(pawn.MapTilePosition))
         {
-            List<(Vector2Int, float)> tmpPath = new List<(Vector2Int, float)>();
             if (GameManager.Instance.GetAITagSystem(AITagSubject.Build).IsTagged(planObj) == false
                 && planObj.GetRemainReqItemList().Count == 0
-                && GameManager.Instance.FindPath(pawn.MapTilePosition, planObj.MapTilePosition, ref tmpPath) == true)
+                && GameManager.Instance.IsReachable(pawn.MapTilePosition, planObj.MapTilePosition) == true)
             {
                 GameManager.Instance.GetAITagSystem(AITagSubject.Build).Tag(pawn, planObj);
                 yield return State.Complete;
@@ -101,9 +100,8 @@ public class TagBuildTransport : ActionTask
 
         foreach (ItemObject itemObj in GameManager.Instance.GetNearestRObjectsFromType<ItemObject>(pawn.MapTilePosition))
         {
-            List<(Vector2Int, float)> tmpPath = new List<(Vector2Int, float)>();
             if (GameManager.Instance.GetAITagSystem(AITagSubject.PickupItem).IsTagged(itemObj) == false
-                && GameManager.Instance.FindPath(pawn.MapTilePosition, itemObj.MapTilePosition, ref tmpPath) == true)
+                && GameManager.Instance.IsReachable(pawn.MapTilePosition, itemObj.MapTilePosition) == true)
             {
                 if (nearestItemList.TryGetValue(itemObj.Desc, out List<ItemObject> itemList) == false)
                     nearestItemList.Add(itemObj.Desc, itemList = new List<ItemObject>());
@@ -114,13 +112,12 @@ public class TagBuildTransport : ActionTask
         //{PlanObj 하나 Tag하고, 아이템 Tag, 줍기} while로 반복?
         foreach (PlanObject planObj in GameManager.Instance.GetNearestRObjectsFromType<PlanObject>(pawn.MapTilePosition))
         {
-            List<(Vector2Int, float)> tmpPath = new List<(Vector2Int, float)>();
             var remainItemList = planObj.GetRemainReqItemList();
             if ( GameManager.Instance.GetAITagSystem( AITagSubject.Build ).IsTagged( planObj ) == false
                 //첫번째로 Tag된 planobj를 기준으로 다시  설정할까
                 //&& (firstTarget == null || VectorExt.Get8DirectionLength(pawn.MapTilePosition, planObj.MapTilePosition) <= 5)
                 && remainItemList.Count > 0
-                && GameManager.Instance.FindPath( pawn.MapTilePosition, planObj.MapTilePosition, ref tmpPath ) == true )
+                && GameManager.Instance.IsReachable( pawn.MapTilePosition, planObj.MapTilePosition ) == true )
             {
                 //float reqWeight = remainItemList.Sum( reqItem => reqItem.ItemDesc.Weight * reqItem.Amount );
                 bool tagItem = false;
