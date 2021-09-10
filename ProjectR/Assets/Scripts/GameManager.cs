@@ -106,6 +106,8 @@ public class GameManager : SingletonBehaviour<GameManager>
         WorldMap = new GameObject("WorldMap").AddComponent<WorldMap>();
 
         GOPoolManager.Instance.Init("RObj", new GameObject("RObject", typeof(RObjectBehaviour)));
+
+        DeveloperTool.Instance.On = true;
     }
 
     private void Update()

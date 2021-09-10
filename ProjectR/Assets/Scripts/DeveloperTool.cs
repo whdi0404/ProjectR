@@ -9,7 +9,7 @@ public class DeveloperTool : SingletonBehaviour<DeveloperTool>
 
     void OnGUI()
     {
-        if (On == true)
+        if (On == false)
             return;
 
         Vector2Int tile = InputManager.Instance.CurrentMouseTilePosition;

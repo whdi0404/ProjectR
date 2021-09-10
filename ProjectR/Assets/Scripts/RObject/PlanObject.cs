@@ -12,22 +12,6 @@ public class PlanObject : RObject
 
     public Inventory Inventory { get; private set; }
 
-    public float RemainWorkload { get; private set; }
-
-    public bool IsFilledMaterials
-    {
-        get
-        {
-            foreach (var reqItem in planningDesc.ReqItemList)
-            {
-                if (Inventory.GetItemAmount(reqItem.ItemDesc) < reqItem.Amount)
-                    return false;
-            }
-
-            return true;
-        }
-    }
-
     public PlanObject(StructurePlanningDescriptor planningDesc)
     {
         this.planningDesc = planningDesc;
@@ -47,6 +31,22 @@ public class PlanObject : RObject
         RemainWorkload = planningDesc.Workload;
     }
 
+    public float RemainWorkload { get; private set; }
+
+    public bool IsFilledMaterials
+    {
+        get
+        {
+            foreach (var reqItem in planningDesc.ReqItemList)
+            {
+                if (Inventory.GetItemAmount(reqItem.ItemDesc) < reqItem.Amount)
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
     public override void VisualUpdate(float dt)
     {
 
@@ -58,8 +58,7 @@ public class PlanObject : RObject
 
         if (RemainWorkload <= 0)
         {
-            //Todo: PlanningDesc로 물건 생성
-            GameManager.Instance.DestroyRObject(this);
+            Complete();
         }
     }
 
@@ -74,5 +73,16 @@ public class PlanObject : RObject
         }
 
         return reqItemList;
+    }
+
+    public void Complete()
+    {
+        GameManager.Instance.DestroyRObject(this);
+
+        if (PlanningDesc.Structure != null)
+            GameManager.Instance.WorldMap.SetTile(MapTilePosition, PlanningDesc.Structure);
+
+        //if (planObject.PlanningDesc.InstallObject != null)
+        //GameManager.Instance.CreateRObject(new InstallObject());
     }
 }

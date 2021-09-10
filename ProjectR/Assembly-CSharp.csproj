@@ -105,8 +105,10 @@
     <Compile Include="Assets\M4u\Scripts\M4uBindingMultiple.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uEventBinding.cs" />
     <Compile Include="Assets\Scripts\Utilities\PerlinNoise.cs" />
+    <Compile Include="Assets\Scripts\RObject\InstallObject.cs" />
     <Compile Include="Assets\Scripts\TableDescriptor\TileAtlasInfoTable.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uContext.cs" />
+    <Compile Include="Assets\Scripts\AISystem\RegionSystem.cs" />
     <Compile Include="Assets\Scripts\CameraManager.cs" />
     <Compile Include="Assets\Scripts\Utilities\SingletonAttribute.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uCollectionBinding.cs" />
@@ -125,11 +127,14 @@
     <Compile Include="Assets\Scripts\RObject\Pawn.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uContextMonoBehaviour.cs" />
     <Compile Include="Assets\Scripts\RObject\PlanObject.cs" />
+    <Compile Include="Assets\Scripts\Utilities\GUIExt.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uSpecialBinding.cs" />
     <Compile Include="Assets\Scripts\WorldLogic\World.cs" />
     <Compile Include="Assets\Scripts\PoolManager.cs" />
     <Compile Include="Assets\Scripts\AtlasObject.cs" />
+    <Compile Include="Assets\Scripts\Inventory.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uSliderBinding.cs" />
+    <Compile Include="Assets\Scripts\DeveloperTool.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Utilities\PriorityQueue.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uColorBinding.cs" />
@@ -142,11 +147,7 @@
     <Compile Include="Assets\M4u\Scripts\M4uInputFieldBinding.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uDisableAttribute.cs" />
     <Compile Include="Assets\Scripts\GoogleSheet\CompositeSheetAttribute.cs" />
-    <Compile Include="Assets\Scripts\AISystem\RegionSystem.cs" />
-    <Compile Include="Assets\Scripts\Utilities\GUIExt.cs" />
-    <Compile Include="Assets\Scripts\Inventory.cs" />
-    <Compile Include="Assets\Scripts\DeveloperTool.cs" />
-    <Compile Include="Assets\Scripts\RObject\InstallObject.cs" />
+    <Compile Include="Assets\Scripts\AISystem\Work.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

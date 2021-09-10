@@ -44,6 +44,33 @@ public class WorldMapRenderer
 		UpdateTileGroup();
 	}
 
+	public void OnChangeTile(Vector2Int tile)
+	{
+		Vector2Int centerGroupPos = new Vector2Int((int)(mainCamera.transform.position.x / tileGroupSize.x), (int)(mainCamera.transform.position.y / tileGroupSize.y));
+
+		Vector2Int groupIndex = worldMap.TilePosToGroupIndex(tile);
+
+		Vector2Int offset = centerGroupPos + Vector2Int.one * -tileGroupAmount / 2;
+
+		Vector2Int rendererIndex = groupIndex - offset;
+
+		if (groupIndex.x < offset.x
+			|| groupIndex.x >= offset.x + tileGroupAmount.x
+			|| groupIndex.y < offset.y
+			|| groupIndex.y >= offset.y + tileGroupAmount.y)
+			return;
+
+		int ix = groupIndex.x % tileGroupAmount.x;
+		int iy = groupIndex.y % tileGroupAmount.y;
+
+		Vector2Int fragmentTile = tile - groupIndex * worldMap.TileGroupSize;
+
+        worldMap.TryGetTile(tile, out AtlasInfoDescriptor desc);
+
+        tileGroups[ix, iy].SetTile(desc.Id, fragmentTile.x, fragmentTile.y);
+        tileGroups[ix, iy].Apply();
+    }
+
 	private void UpdateTileGroup(bool first = false)
 	{
 		Vector2Int centerGroupPos = new Vector2Int((int)(mainCamera.transform.position.x / tileGroupSize.x), (int)(mainCamera.transform.position.y / tileGroupSize.y));

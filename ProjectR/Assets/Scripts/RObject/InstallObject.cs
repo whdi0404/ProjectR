@@ -2,13 +2,36 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class InstallObject : RObject
+public class WorkbenchObject : RObject
 {
-    public override void VisualUpdate(float dt)
+    public WorkBenchDataDescriptor Desc { get; private set; }
+
+    public Inventory Inventory { get; private set; }
+    
+    public override Vector2Int Size { get => Desc.Size; }
+
+    public WorkbenchObject(WorkBenchDataDescriptor desc)
     {
+        Desc = desc;
+        VisualImage = Resources.Load<Sprite>(Desc.Image);
     }
 
-    public InstallObject(InstallObjectDataDescriptor installObj)
+    public override void VisualUpdate(float dt)
+    {
+
+    }
+
+    public void Cancel()
     { 
+    
+    }
+    public void Complete()
+    { 
+    
+    }
+
+    public void Work()
+    { 
+    
     }
 }

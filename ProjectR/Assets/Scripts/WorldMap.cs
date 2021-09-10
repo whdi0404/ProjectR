@@ -68,7 +68,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		MakeIsland(new Vector2Int(32,32), 256, Random.Range(0, int.MaxValue));
 
         worldMapRenderer = new WorldMapRenderer();
-        worldMapRenderer.Initialize(this, new Vector2Int(8, 8));
+        worldMapRenderer.Initialize(this, new Vector2Int(6, 6));
 
 		RegionSystem = new RegionSystem();
 		RegionSystem.Initialize(this);
@@ -135,14 +135,14 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 				Vector2Int pos = startPos + new Vector2Int(x, y);
 
 				if (gradationNoise < 0.2f)
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Water"), false);
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Water"));
 				else if (gradationNoise < 0.3f)
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Sand"), false);
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Sand"));
 				else
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Ground"), false);
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Ground"));
 
 				if (gradationNoise >= 0.2f && noise > 0.8f)
-					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Wall"), false);
+					SetTile(pos, TableManager.GetTable<TileAtlasInfoTable>().Find("Wall"));
 			}
 	}
 
@@ -244,7 +244,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		}
 	}
 
-	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc, bool recreateRegion = true)
+	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc)
 	{
 		Vector2Int groupIndex = TilePosToGroupIndex(pos);
 
@@ -262,10 +262,9 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
             tileGroupDict[groupIndex] = new TileFragmentData(bounds);
         }
 
-		if (recreateRegion == true)
-		{
-			RegionSystem.CalculateLocalRegion(groupIndex);
-		}
+		RegionSystem?.CalculateLocalRegion(groupIndex);
+
+		worldMapRenderer?.OnChangeTile(pos);
 	}
 
 	public Vector2Int TilePosToGroupIndex(Vector2Int pos)

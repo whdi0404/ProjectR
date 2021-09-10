@@ -27,6 +27,7 @@ public class LocalRegion : IEquatable<LocalRegion>
 
     public LocalRegion(WorldMap worldMap, Vector2Int groupIndex, List<Vector2Int> tiles)
     {
+        this.worldMap = worldMap;
         //바운드박스 만들어서 선체크 후, 겹치면 인접체크 하자.
         //인접한 타일들 따로 모아서 그것들끼리만 체크하자.
 
@@ -129,7 +130,7 @@ public class LocalRegion : IEquatable<LocalRegion>
 
     public void DrawOnGUI(Color color, bool drawAdjacent)
     {
-        foreach (var tile in tiles)
+        foreach (var tile in outlineTiles)
         {
             Vector2 start = CameraManager.Instance.MainCamera.WorldToScreenPoint(new Vector2(tile.x, tile.y));
             start.y = Screen.height - start.y;
@@ -137,13 +138,13 @@ public class LocalRegion : IEquatable<LocalRegion>
             Vector2 end = CameraManager.Instance.MainCamera.WorldToScreenPoint(new Vector2(tile.x, tile.y) + new Vector2(1, 1));
             end.y = Screen.height - end.y;
 
-            Rect drawRect = Rect.MinMaxRect(start.x, end.y, end.x, start.y);
-
-            if (outlineTiles.Contains(tile) == true)
-                GUIExt.DrawRect(drawRect, new Color(color.r, color.g, color.b, 1.0f));
-            else
-                GUIExt.DrawRect(drawRect, new Color(color.r, color.g, color.b, 0.2f));
+            GUIExt.DrawRect(Rect.MinMaxRect(start.x, end.y, end.x, start.y), color);
         }
+
+        Vector2 center = CameraManager.Instance.MainCamera.WorldToScreenPoint(Bounds.center);
+        center.y = Screen.height - center.y;
+
+        GUI.Label(new Rect(center, new Vector2(100, 25)), $"{GroupIndex}");
 
         if (drawAdjacent)
             foreach (var adjacentRegion in AdjacentRegion)
@@ -266,7 +267,7 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
                 if (targetRegion.IsAdjacent(region) == true)
                     LocalRegion.Link(targetRegion, region);
         }
-        if (targetRegion.CheckLeft == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(1, 0), out regionList) == true)
+        if (targetRegion.CheckRight == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(1, 0), out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
                 if (targetRegion.IsAdjacent(region) == true)

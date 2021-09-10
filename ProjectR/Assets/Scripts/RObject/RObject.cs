@@ -118,9 +118,9 @@ public abstract class RObject
             queue.Enqueue(nearNode);
         }
 
-        for (int y = -1; y <= Size.y; ++y)
+        for (int y = 0; y < Size.y; ++y)
         {
-            Vector2Int tile = MapTilePosition + new Vector2Int(0, y);
+            Vector2Int tile = MapTilePosition + new Vector2Int(-1, y);
             NearNode nearNode = new NearNode
             {
                 position = tile,
