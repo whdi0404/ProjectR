@@ -61,6 +61,7 @@
     <Compile Include="Assets\Scripts\TableDescriptor\ItemTable\WeaponDataTable.cs" />
     <Compile Include="Assets\Scripts\UISystem\InputManager.cs" />
     <Compile Include="Assets\Scripts\TableDescriptor\StructurePlanningTable.cs" />
+    <Compile Include="Assets\Scripts\AISystem\WorkBase.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uEnableBinding.cs" />
     <Compile Include="Assets\Scripts\DataContainer.cs" />
     <Compile Include="Assets\Scripts\UISystem\DataVisualize\TextSetter.cs" />
@@ -147,7 +148,8 @@
     <Compile Include="Assets\M4u\Scripts\M4uInputFieldBinding.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uDisableAttribute.cs" />
     <Compile Include="Assets\Scripts\GoogleSheet\CompositeSheetAttribute.cs" />
-    <Compile Include="Assets\Scripts\AISystem\Work.cs" />
+    <Compile Include="Assets\Scripts\ObjectManagingSystem.cs" />
+    <Compile Include="Assets\Scripts\AITagSystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

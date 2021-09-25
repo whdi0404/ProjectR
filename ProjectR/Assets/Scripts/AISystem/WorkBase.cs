@@ -2,25 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IRegionListener
-{
-    public void OnRegionChange(Vector2Int tileGroupIndex);
-}
 
-public interface IRObjectListener
-{
-    public void OnCreateObject(RObject rObject);
-    public void OnDestroyObject(RObject rObject);
-}
 
-public class WorkSystem : IRegionListener, IRObjectListener
+public class WorkSystem : IRegionListener, IObjectManagerListener
 {
     private Dictionary<LocalRegion, List<WorkPlace>> workPlaces;
 
-    public void OnRegionChange(Vector2Int tileGroupIndex, List<LocalRegion> newRegions)
+    public void OnRegionChange( List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions )
     {
-        GameManager.Instance.RObjList
+        throw new System.NotImplementedException();
     }
+
     public void OnCreateObject(RObject rObject)
     {
         throw new System.NotImplementedException();
@@ -42,13 +34,15 @@ public class WorkPlace
         Bottom = 1 << 3,
     }
 
-    private List<Work> workList = new List<Work>();
+    private List<WorkBase> workList = new List<WorkBase>();
 }
 
-public abstract class Work
+public abstract class WorkBase
 {
-    public Work()
-
+    public WorkBase()
+    { 
+    
+    }
 
     public abstract bool IsWorkable { get; }
 
@@ -69,7 +63,7 @@ public abstract class Work
     }
 }
 
-public class BuildWork : Work
+public class BuildWork : WorkBase
 {
     public StructurePlanningDescriptor PlanningDesc { get { return planningDesc; } }
 
@@ -95,7 +89,7 @@ public class BuildWork : Work
         }
     }
 
-    public void Work(float work)
+    public override void Work(float work)
     {
         RemainWorkload -= work;
 
@@ -118,7 +112,7 @@ public class BuildWork : Work
         return reqItemList;
     }
 
-    public void Complete()
+    public override void Complete()
     {
         if (PlanningDesc.Structure != null)
             GameManager.Instance.WorldMap.SetTile(MapTilePosition, PlanningDesc.Structure);

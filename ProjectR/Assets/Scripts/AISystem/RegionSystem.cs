@@ -5,6 +5,11 @@ using System.Linq;
 using UnityEngine;
 using static WorldMap;
 
+public interface IRegionListener
+{
+	public void OnRegionChange( List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions );
+}
+
 public class LocalRegion : IEquatable<LocalRegion>
 {
     private HashSet<Vector2Int> tiles;
@@ -157,9 +162,9 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
     private WorldMap worldMap;
     //TileGroupIndex/regions
     private SmartDictionary<Vector2Int, List<LocalRegion>> regions = new SmartDictionary<Vector2Int, List<LocalRegion>>();
-    List<(LocalRegion, float)> regionPathFind = new List<(LocalRegion, float)>();
+    private List<(LocalRegion, float)> regionPathFind = new List<(LocalRegion, float)>();
     public PathFinder<LocalRegion> PathFinder { get; private set; } = new PathFinder<LocalRegion>((a, b) => Vector3.Distance(a.Bounds.center, b.Bounds.center));
-    
+    private event Action<List<LocalRegion>, List<LocalRegion>> onRegionChangeEvent;
     public void Initialize(WorldMap worldMap)
     {
         this.worldMap = worldMap;
@@ -244,6 +249,8 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
         }
 
         regions.Add(groupIndex, regionList);
+
+        onRegionChangeEvent( oldRegionList, regionList );
     }
 
     public void CalculateAdjecentRegion(LocalRegion targetRegion)
@@ -327,6 +334,15 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
     {
         foreach (var region in pos.AdjacentRegion)
             yield return (region, 1);
+    }
+
+    public void AddListener( IRegionListener listener )
+    {
+        onRegionChangeEvent += listener.OnRegionChange;
+    }
+    public void RemoveListener( IRegionListener listener )
+    {
+        onRegionChangeEvent -= listener.OnRegionChange;
     }
 
 }
