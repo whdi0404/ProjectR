@@ -162,6 +162,9 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
     private WorldMap worldMap;
     //TileGroupIndex/regions
     private SmartDictionary<Vector2Int, List<LocalRegion>> regions = new SmartDictionary<Vector2Int, List<LocalRegion>>();
+
+    private SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>> allNodesDijkstraMap = new SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>>();
+
     private List<(LocalRegion, float)> regionPathFind = new List<(LocalRegion, float)>();
     public PathFinder<LocalRegion> PathFinder { get; private set; } = new PathFinder<LocalRegion>((a, b) => Vector3.Distance(a.Bounds.center, b.Bounds.center));
     private event Action<List<LocalRegion>, List<LocalRegion>> onRegionChangeEvent;
@@ -169,11 +172,13 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
     {
         this.worldMap = worldMap;
         foreach (Vector2Int groupIndex in worldMap.ExistGroupList)
-            CalculateLocalRegion(groupIndex);
+            CalculateLocalRegion(groupIndex, false);
+
+        RefreshDijkstraMap();
     }
 
     //길찾기 경로 중 재생성하는 Region이 포함된 타일이 있으면 Region 재생성시 이동중인 애들한테 알려줘야함.
-    public void CalculateLocalRegion(Vector2Int groupIndex)
+    public void CalculateLocalRegion(Vector2Int groupIndex, bool refreshDijkstraMap = true)
     {
         if (regions.TryGetValue(groupIndex, out List<LocalRegion> oldRegionList) == true)
         {
@@ -250,7 +255,10 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
 
         regions.Add(groupIndex, regionList);
 
-        onRegionChangeEvent( oldRegionList, regionList );
+        onRegionChangeEvent?.Invoke(oldRegionList, regionList);
+
+        if (refreshDijkstraMap == true)
+            RefreshDijkstraMap();
     }
 
     public void CalculateAdjecentRegion(LocalRegion targetRegion)
@@ -315,14 +323,22 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
 
     public bool IsReachable(Vector2Int start, Vector2Int dest)
     {
-        regionPathFind.Clear();
+        //regionPathFind.Clear();
 
         if (GetRegionFromTilePos(start, out var startRegion) == false)
             return false;
         if (GetRegionFromTilePos(dest, out var destRegion) == false)
             return false;
 
-        return PathFinder.FindPath(this, startRegion, destRegion, ref regionPathFind);
+        return IsReachable(startRegion, destRegion);
+    }
+
+    public bool IsReachable(LocalRegion start, LocalRegion dest)
+    {
+        if (allNodesDijkstraMap.TryGetValue(start, out var dijkstraMap) == false)
+            return false;
+
+        return dijkstraMap.TryGetValue(dest, out var cost);
     }
 
     public float GetTileMovableWeight(LocalRegion pos)
@@ -336,13 +352,70 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
             yield return (region, 1);
     }
 
-    public void AddListener( IRegionListener listener )
+    public void AddListener(IRegionListener listener)
     {
         onRegionChangeEvent += listener.OnRegionChange;
     }
-    public void RemoveListener( IRegionListener listener )
+    public void RemoveListener(IRegionListener listener)
     {
         onRegionChangeEvent -= listener.OnRegionChange;
     }
 
+    //다익스트라 관련
+    public class DijkstraNode : IComparable<DijkstraNode>
+    {
+        public LocalRegion region;
+        public int cost;
+
+        public DijkstraNode(LocalRegion region, int cost)
+        {
+            this.region = region;
+            this.cost = cost;
+        }
+
+        public int CompareTo(DijkstraNode other)
+        {
+            return cost.CompareTo(other.cost);
+        }
+    }
+
+    public void RefreshDijkstraMap()
+    {
+        allNodesDijkstraMap = new SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>>();
+        foreach (var regionList in regions.Values)
+        {
+            foreach (var region in regionList)
+                allNodesDijkstraMap[region] = Dijkstra(region);
+        }
+    }
+
+    //Key: 목표위치 Value: (이전위치,비용)
+    //길찾기에 활용하기 위해 이전위치를 저장함. 목표위치까지의 경로를 알고싶으면, 목표위치의 이전위치를 순차적으로 찾아가면 됨.
+    SmartDictionary<LocalRegion, (LocalRegion, int)> Dijkstra(LocalRegion startNode)
+    {
+        SmartDictionary<LocalRegion, (LocalRegion, int)> djikstraDict = new SmartDictionary<LocalRegion, (LocalRegion, int)>();
+
+        PriorityQueue<DijkstraNode> pq = new PriorityQueue<DijkstraNode>();
+        pq.Enqueue(new DijkstraNode(startNode, 0));
+        djikstraDict[startNode] = (null, 0);
+
+        while (pq.Count > 0)
+        {
+            DijkstraNode currentNode = pq.Dequeue();
+
+            foreach (var nextRegion in currentNode.region.AdjacentRegion)
+            {
+                int prevCost = djikstraDict[nextRegion].Item2;
+                int nextCost = currentNode.cost + 1;
+
+                if (prevCost == 0 || prevCost > nextCost)
+                {
+                    djikstraDict[nextRegion] = (currentNode.region, nextCost);
+                    pq.Enqueue(new DijkstraNode(nextRegion, nextCost));
+                }
+            }
+        }
+
+        return djikstraDict;
+    }
 }

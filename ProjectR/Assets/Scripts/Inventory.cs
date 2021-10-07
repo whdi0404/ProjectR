@@ -42,7 +42,7 @@ public class Inventory
 		itemObj.Amount -= amount;
 
 		if (itemObj.Amount == 0)
-			GameManager.Instance.DestroyRObject(itemObj);
+			GameManager.Instance.ObjectManager.DestroyObject(itemObj);
 
 		return true;
 	}
@@ -60,7 +60,7 @@ public class Inventory
 			return false;
 
 		ItemDict[itemDesc] -= amount;
-		GameManager.Instance.CreateItem(pos, itemDesc, amount);
+		GameManager.Instance.ObjectManager.CreateItem(pos, itemDesc, amount);
 		return true;
 	}
 

@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct NearNode : IComparable<NearNode>
+public struct NearNode<T> : IComparable<NearNode<T>>
 {
-    public Vector2Int position;
+    public T position;
     public float distance;
 
-    public int CompareTo(NearNode other)
+    public int CompareTo(NearNode<T> other)
     {
         return distance.CompareTo(other.distance);
     }
@@ -16,6 +16,28 @@ public struct NearNode : IComparable<NearNode>
 public abstract class RObject
 {
     public ulong UniqueId { get; set; } = 0;
+
+    //오브젝트를 종류별로 파악하기 위한 Id
+    public string IndexId { get; protected set; }
+
+    private string[] indexKey;
+
+    public string[] IndexKey
+    { 
+        get 
+        {
+            if (indexKey == null)
+            {
+                string[] indexKeys = IndexId.Split('/');
+
+                indexKey = new string[indexKeys.Length + 1];
+                Array.Copy(indexKeys, indexKey, indexKeys.Length);
+                indexKey[indexKey.Length - 1] = UniqueId.ToString();
+            }
+
+            return indexKey;
+        } 
+    }
 
     public Vector2 MapPosition { get; set; }
 
@@ -27,15 +49,18 @@ public abstract class RObject
         set => MapPosition = value + new Vector2(0.5f, 0.5f);
     }
 
+    public LocalRegion LocalRegion { get; private set; }
+
     public virtual Sprite VisualImage { get; set; }
 
-    protected RObject()
+    public RObject()
     {
+        UniqueId = GameManager.Instance.GetNewUID();
     }
 
     private RObjectBehaviour behaviour;
 
-    public void VisuaiUpdate()
+    public void UpdateBehaviourVisible()
     {
         if (behaviour == null && IsInCamera())
         {
@@ -81,7 +106,7 @@ public abstract class RObject
 
     public IEnumerable<Vector2Int> GetNearestAdjecentTile(Vector2Int position, bool containInside)
     {
-        PriorityQueue<NearNode> queue = new PriorityQueue<NearNode>();
+        PriorityQueue<NearNode<Vector2Int>> queue = new PriorityQueue<NearNode<Vector2Int>>();
 
         if (containInside)
         {
@@ -89,7 +114,7 @@ public abstract class RObject
                 for (int y = 0; y < Size.y; ++y)
                 {
                     Vector2Int tile = MapTilePosition + new Vector2Int(x, y);
-                    NearNode nearNode = new NearNode 
+                    NearNode<Vector2Int> nearNode = new NearNode<Vector2Int>
                     {
                         position = tile,
                         distance = Vector2Int.Distance(tile, position) 
@@ -102,7 +127,7 @@ public abstract class RObject
         for (int x = -1; x <= Size.x; ++x)
         {
             Vector2Int tile = MapTilePosition + new Vector2Int(x, -1);
-            NearNode nearNode = new NearNode
+            NearNode<Vector2Int> nearNode = new NearNode<Vector2Int>
             {
                 position = tile,
                 distance = Vector2Int.Distance(tile, position)
@@ -110,7 +135,7 @@ public abstract class RObject
             queue.Enqueue(nearNode);
 
             tile = MapTilePosition + new Vector2Int(x, Size.y);
-            nearNode = new NearNode
+            nearNode = new NearNode<Vector2Int>
             {
                 position = tile,
                 distance = Vector2Int.Distance(tile, position)
@@ -121,7 +146,7 @@ public abstract class RObject
         for (int y = 0; y < Size.y; ++y)
         {
             Vector2Int tile = MapTilePosition + new Vector2Int(-1, y);
-            NearNode nearNode = new NearNode
+            NearNode<Vector2Int> nearNode = new NearNode<Vector2Int>
             {
                 position = tile,
                 distance = Vector2Int.Distance(tile, position)
@@ -129,7 +154,7 @@ public abstract class RObject
             queue.Enqueue(nearNode);
 
             tile = MapTilePosition + new Vector2Int(Size.x, y);
-            nearNode = new NearNode
+            nearNode = new NearNode<Vector2Int>
             {
                 position = tile,
                 distance = Vector2Int.Distance(tile, position)
@@ -156,5 +181,19 @@ public abstract class RObject
         bounds2.SetMinMax(new Vector3Int(rObject.MapTilePosition.x, rObject.MapTilePosition.y, 0), new Vector3Int(bounds2Max.x, bounds2Max.y, 1));
 
         return bounds1.Intersects(bounds2);
+    }
+
+    public void RefreshRegion(bool isInit = false)
+    {
+        LocalRegion prevRegion = LocalRegion;
+
+        if (GameManager.Instance.WorldMap.RegionSystem.GetRegionFromTilePos(this.MapTilePosition, out LocalRegion region) == true)
+        {
+            LocalRegion = region;
+            if(isInit == false)
+                GameManager.Instance.ObjectManager.OnObjectRefreshRegion(this, prevRegion);
+        }
+        else
+            Debug.LogError($"ObjectID: {this.UniqueId}, 알맞은 Region 없음");
     }
 }

@@ -63,7 +63,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	public PathFinder<Vector2Int> PathFinder { get; private set; } = new PathFinder<Vector2Int>((a, b) => VectorExt.Get8DirectionLength(a, b));
 
-	private void Start()
+	private void Awake()
 	{
 		MakeIsland(new Vector2Int(32,32), 256, Random.Range(0, int.MaxValue));
 
@@ -246,6 +246,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc)
 	{
+		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 		Vector2Int groupIndex = TilePosToGroupIndex(pos);
 
 		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
@@ -265,6 +266,8 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		RegionSystem?.CalculateLocalRegion(groupIndex);
 
 		worldMapRenderer?.OnChangeTile(pos);
+
+		Debug.Log($"SetTile: {stopwatch.ElapsedTicks}");
 	}
 
 	public Vector2Int TilePosToGroupIndex(Vector2Int pos)

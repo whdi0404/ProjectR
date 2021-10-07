@@ -123,7 +123,7 @@ public class InputManager : SingletonBehaviour<InputManager>
         if (Input.GetKey(KeyCode.S) == true)
         {
             var itemDesc = TableManager.GetTable<ItemDataTable>().Find("TestMaterial");
-            GameManager.Instance.CreateItem(CurrentMouseTilePosition, itemDesc, itemDesc.StackAmount / 2);
+            GameManager.Instance.ObjectManager.CreateItem(CurrentMouseTilePosition, itemDesc, itemDesc.StackAmount / 2);
         }
     }
 
@@ -156,7 +156,7 @@ public class InputManager : SingletonBehaviour<InputManager>
     private void SpawnTestPawn(Vector2Int spawnPos)
     {
         Pawn pawn = new Pawn();
-        GameManager.Instance.CreateRObject(pawn);
         pawn.MapTilePosition = spawnPos;
+        GameManager.Instance.ObjectManager.CreateObject(pawn);
     }
 }

@@ -45,7 +45,6 @@ namespace BT
         {
             foreach (Node child in childList)
             {
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 foreach (State state in child.Run(pawn))
                 {
                     if (state == State.Running)
@@ -58,7 +57,6 @@ namespace BT
                         yield break;
                     }
                 }
-                Debug.Log($"{child.ToString()}: {stopwatch.ElapsedMilliseconds}ms");
             }
 
             yield return State.Failed;
@@ -71,7 +69,6 @@ namespace BT
         {
             foreach (Node child in childList)
             {
-                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 foreach (State state in child.Run(pawn))
                 {
                     if (state == State.Running)
@@ -84,7 +81,6 @@ namespace BT
                         yield break;
                     }
                 }
-                Debug.Log($"{child.ToString()}: {stopwatch.ElapsedMilliseconds}ms");
             }
 
             yield return State.Complete;

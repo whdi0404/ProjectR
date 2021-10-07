@@ -8,7 +8,7 @@ public class WorkSystem : IRegionListener, IObjectManagerListener
 {
     private Dictionary<LocalRegion, List<WorkPlace>> workPlaces;
 
-    public void OnRegionChange( List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions )
+    public void OnRegionChange(List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions)
     {
         throw new System.NotImplementedException();
     }
@@ -27,7 +27,7 @@ public class WorkSystem : IRegionListener, IObjectManagerListener
 public class WorkPlace
 {
     public enum Direction
-    { 
+    {
         Left = 1 << 0,
         Top = 1 << 1,
         Right = 1 << 2,
@@ -40,8 +40,8 @@ public class WorkPlace
 public abstract class WorkBase
 {
     public WorkBase()
-    { 
-    
+    {
+
     }
 
     public abstract bool IsWorkable { get; }
@@ -58,8 +58,8 @@ public abstract class WorkBase
     }
 
     public virtual void Complete()
-    { 
-    
+    {
+
     }
 }
 
@@ -114,8 +114,8 @@ public class BuildWork : WorkBase
 
     public override void Complete()
     {
-        if (PlanningDesc.Structure != null)
-            GameManager.Instance.WorldMap.SetTile(MapTilePosition, PlanningDesc.Structure);
+        //if (PlanningDesc.Structure != null)
+        //    GameManager.Instance.WorldMap.SetTile(MapTilePosition, PlanningDesc.Structure);
 
         //if (planObject.PlanningDesc.InstallObject != null)
         //GameManager.Instance.CreateRObject(new InstallObject());

@@ -5,7 +5,6 @@ using BT;
 using System.Linq;
 using System;
 using System.Diagnostics;
-
 //밥먹기
 
 //잠자기
@@ -19,7 +18,7 @@ public class TagBuild : ActionTask
         if (taggedList != null && taggedList.Count > 0)
             yield return State.Complete;
 
-        foreach (PlanObject planObj in GameManager.Instance.GetNearestRObjectsFromType<PlanObject>(pawn.MapTilePosition))
+        foreach (PlanObject planObj in GameManager.Instance.ObjectManager.GetNearestObjectFromIndexId<PlanObject>("Plan/Build", pawn.MapTilePosition))
         {
             if (GameManager.Instance.GetAITagSystem(AITagSubject.Build).IsTagged(planObj) == false
                 && planObj.GetRemainReqItemList().Count == 0
@@ -27,7 +26,6 @@ public class TagBuild : ActionTask
             {
                 GameManager.Instance.GetAITagSystem(AITagSubject.Build).Tag(pawn, planObj);
                 yield return State.Complete;
-
             }
         }
 
@@ -98,10 +96,9 @@ public class TagBuildTransport : ActionTask
         SmartDictionary<ItemDataDescriptor, List<ItemObject>> nearestItemList = new SmartDictionary<ItemDataDescriptor, List<ItemObject>>();
         float remainWeight = pawn.Inventory.RemainWeight;
 
-        foreach (ItemObject itemObj in GameManager.Instance.GetNearestRObjectsFromType<ItemObject>(pawn.MapTilePosition))
+        foreach (ItemObject itemObj in GameManager.Instance.ObjectManager.GetNearestObjectFromIndexId<ItemObject>("Item", pawn.MapTilePosition))
         {
-            if (GameManager.Instance.GetAITagSystem(AITagSubject.PickupItem).IsTagged(itemObj) == false
-                && GameManager.Instance.IsReachable(pawn.MapTilePosition, itemObj.MapTilePosition) == true)
+            if (GameManager.Instance.GetAITagSystem(AITagSubject.PickupItem).IsTagged(itemObj) == false)
             {
                 if (nearestItemList.TryGetValue(itemObj.Desc, out List<ItemObject> itemList) == false)
                     nearestItemList.Add(itemObj.Desc, itemList = new List<ItemObject>());
@@ -110,7 +107,7 @@ public class TagBuildTransport : ActionTask
             }
         }
         //{PlanObj 하나 Tag하고, 아이템 Tag, 줍기} while로 반복?
-        foreach (PlanObject planObj in GameManager.Instance.GetNearestRObjectsFromType<PlanObject>(pawn.MapTilePosition))
+        foreach (PlanObject planObj in GameManager.Instance.ObjectManager.GetNearestObjectFromIndexId<PlanObject>("Plan/Build", pawn.MapTilePosition))
         {
             var remainItemList = planObj.GetRemainReqItemList();
             if ( GameManager.Instance.GetAITagSystem( AITagSubject.Build ).IsTagged( planObj ) == false

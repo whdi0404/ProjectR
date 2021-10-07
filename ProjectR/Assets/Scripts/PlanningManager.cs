@@ -47,7 +47,7 @@ public class StructurePlanning : Planning
 			{
 				var newPlanObj = new PlanObject( planDesc );
 				newPlanObj.MapTilePosition = new Vector2Int( x, y );
-				GameManager.Instance.CreateRObject( newPlanObj );
+				GameManager.Instance.ObjectManager.CreateObject( newPlanObj );
 			}
         }
 	}
@@ -60,7 +60,7 @@ public class StructurePlanning : Planning
 
     public override void Cancel()
     {
-        GameManager.Instance.DestroyRObject(planObj);
+        GameManager.Instance.ObjectManager.DestroyObject(planObj);
         planObj = null;
     }
 

@@ -18,6 +18,7 @@ public class Pawn : RObject
 		Inventory = new Inventory();
 		Inventory.SetWeightLimit( 10.0f );
 		VisualImage = Resources.Load<Sprite>("PawnTextures/pawn");
+		IndexId = $"Pawn";//적,아군,동맹,동물 등 표시
 	}
 
 	public override void Update(float dt)

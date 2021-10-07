@@ -14,6 +14,7 @@ public class WorkbenchObject : RObject
     {
         Desc = desc;
         VisualImage = Resources.Load<Sprite>(Desc.Image);
+        IndexId = $"WorkBench/{Desc.Id}";
     }
 
     public override void VisualUpdate(float dt)
@@ -22,16 +23,16 @@ public class WorkbenchObject : RObject
     }
 
     public void Cancel()
-    { 
-    
+    {
+        
     }
     public void Complete()
-    { 
-    
+    {
+        
     }
 
     public void Work()
     { 
-    
+        
     }
 }

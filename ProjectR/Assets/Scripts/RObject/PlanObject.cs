@@ -14,6 +14,7 @@ public class PlanObject : RObject
 
     public PlanObject(StructurePlanningDescriptor planningDesc)
     {
+        IndexId = "Plan/Build";
         this.planningDesc = planningDesc;
 
         Inventory = new Inventory();
@@ -77,7 +78,7 @@ public class PlanObject : RObject
 
     public void Complete()
     {
-        GameManager.Instance.DestroyRObject(this);
+        GameManager.Instance.ObjectManager.DestroyObject(this);
 
         if (PlanningDesc.Structure != null)
             GameManager.Instance.WorldMap.SetTile(MapTilePosition, PlanningDesc.Structure);
