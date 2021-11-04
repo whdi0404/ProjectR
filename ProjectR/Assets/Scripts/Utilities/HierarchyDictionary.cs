@@ -74,7 +74,7 @@ public class HierarchyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, 
                 return false;
 
             if (children.TryGetValue(keys[index], out var child) == true)
-                return child.Remove(keys, index);
+                return child.Remove(keys, ++index);
 
             return false;
         }
@@ -99,7 +99,7 @@ public class HierarchyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, 
                 return false;
 
             if (children.TryGetValue(keys[index], out var child) == true)
-                return child.TryGetValue(keys, out value, index);
+                return child.TryGetValue(keys, out value, ++index);
 
             return false;
         }
@@ -125,12 +125,10 @@ public class HierarchyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, 
 
             if (children != null)
             {
-                foreach (var child in children.Values)
-                {
+                if (children.TryGetValue(keys[index], out var child) == true)
                     stack.Push(child);
-                }
             }
-            
+
 
             while (stack.Count > 0)
             {
@@ -151,16 +149,14 @@ public class HierarchyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, 
         }
         else
         {
-            return TryGetValues(keys, out values, ++index);
+            if (children != null && children.TryGetValue(keys[index], out var next) == true)
+                return next.TryGetValues(keys, out values, ++index);
+            else
+                return false;
         }
     }
 
     public bool TryGetLeafValue(TKey key, out TValue value)
-    {
-        return TryGetLeafValue(key, out value, 0);
-    }
-
-    protected bool TryGetLeafValue(TKey key, out TValue value, int index)
     {
         Stack<HierarchyDictionary<TKey, TValue>> stack = new Stack<HierarchyDictionary<TKey, TValue>>();
 
@@ -275,6 +271,90 @@ public class HierarchyDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, 
         public void Reset()
         {
             position = -1;
+        }
+    }
+
+
+    public static void Test()
+    {
+        HierarchyDictionary<string, int> dict = new HierarchyDictionary<string, int>();
+
+        dict.Add(new string[] { "item", "cat1", "0" }, 0);
+        dict.Add(new string[] { "item", "cat1", "1" }, 1);
+
+        dict.Add(new string[] { "item", "cat2", "2" }, 2);
+        dict.Add(new string[] { "item", "cat2", "3" }, 3);
+
+        dict.Add(new string[] { "pawn", "friend", "4" }, 4);
+        dict.Add(new string[] { "pawn", "friend", "5" }, 5);
+
+        dict.Add(new string[] { "pawn", "foe", "6" }, 6);
+        dict.Add(new string[] { "pawn", "foe", "7" }, 7);
+
+        if (dict.TryGetValue(new string[] { "item", "cat1", "1" }, out int val) == true)
+            Debug.Log($"item/cat1/1: {val}");
+
+        if (dict.TryGetValues(new string[] { "item" }, out var val2) == true)
+        {
+            foreach (var a in val2)
+            {
+                Debug.Log($"item: {a}");
+            }
+        }
+
+        if (dict.TryGetValues(new string[] { "pawn" }, out var val3) == true)
+        {
+            foreach (var a in val3)
+            {
+                Debug.Log($"pawn: {a}");
+            }
+        }
+
+        if (dict.TryGetLeafValue("3", out var val4) == true)
+        {
+            Debug.Log($"3: {val4}");
+        }
+
+        if (dict.TryGetValues(new string[] { "pawn", "friend" }, out var val5) == true)
+        {
+            foreach (var a in val5)
+            {
+                Debug.Log($"pawn/friend: {a}");
+            }
+        }
+
+        foreach (var a in dict.GetAllValues())
+        {
+            Debug.Log($"all: {a}");
+        }
+
+        dict.Remove(new string[] { "item", "cat1", "1" });
+
+
+        if (dict.TryGetValue(new string[] { "item", "cat1", "1" }, out var val8) == true)
+        {
+            Debug.LogError($"item/cat1/1: {val8}");
+        }
+
+        if (dict.TryGetValues(new string[] { "item" }, out var val6) == true)
+        {
+            foreach (var a in val6)
+            {
+                Debug.Log($"item: {a}");
+            }
+        }
+
+        if (dict.TryGetValues(new string[] { "item", "cat1" }, out var val7) == true)
+        {
+            foreach (var a in val7)
+            {
+                Debug.Log($"item: {a}");
+            }
+        }
+
+        foreach (var a in dict.GetAllValues())
+        {
+            Debug.Log($"all: {a}");
         }
     }
 }

@@ -72,13 +72,6 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 		RegionSystem = new RegionSystem();
 		RegionSystem.Initialize(this);
-
-		Bounds b = new Bounds();
-		b.SetMinMax(new Vector3(0, 0), new Vector3(1, 1));
-		Bounds b2 = new Bounds();
-		b2.SetMinMax(new Vector3(0, 1), new Vector3(1, 2));
-
-		Debug.Log(b.Intersects(b2));
 	}
 
     private void Update()
@@ -246,7 +239,6 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc)
 	{
-		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 		Vector2Int groupIndex = TilePosToGroupIndex(pos);
 
 		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
@@ -266,8 +258,6 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		RegionSystem?.CalculateLocalRegion(groupIndex);
 
 		worldMapRenderer?.OnChangeTile(pos);
-
-		Debug.Log($"SetTile: {stopwatch.ElapsedTicks}");
 	}
 
 	public Vector2Int TilePosToGroupIndex(Vector2Int pos)

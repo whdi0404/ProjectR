@@ -2,7 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WorkbenchObject : RObject
+public static class InstallObject
+{
+    public static RObject CreateInstallObject(InstallObjectDataDescriptor desc)
+    {
+        if (desc is WorkBenchDataDescriptor)
+            return new WorkbenchObject(desc as WorkBenchDataDescriptor);
+
+        return null;
+    }
+}
+
+public class WorkbenchObject : WorkPlaceObject
 {
     public WorkBenchDataDescriptor Desc { get; private set; }
 
@@ -34,5 +45,14 @@ public class WorkbenchObject : RObject
     public void Work()
     { 
         
+    }
+
+    public override void OnCompleteWork(WorkBase work)
+    {
+    }
+
+    public override WorkBase GetWork(Pawn pawn)
+    {
+        return null;
     }
 }

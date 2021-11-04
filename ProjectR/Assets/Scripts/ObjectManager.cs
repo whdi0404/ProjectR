@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 public interface IObjectManagerListener
 {
     public void OnCreateObject( RObject rObject );
@@ -19,8 +20,12 @@ public class ObjectManager : IRegionListener
     private List<RObject> destroyList = new List<RObject>();
     private List<RObject> iteratorList = new List<RObject>();
 
+    public ItemSystem ItemSystem { get; private set; }
+
     public ObjectManager()
     {
+        ItemSystem = new ItemSystem();
+        AddListener(ItemSystem);
     }
 
     public void AddListener(IObjectManagerListener listener)
@@ -87,12 +92,10 @@ public class ObjectManager : IRegionListener
 
     public void CreateObject(RObject rObject)
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        rObject.RefreshRegion(true);
+        rObject.Init();
         GetOrMakeObjectDict(rObject.LocalRegion).Add(rObject.IndexKey, rObject);
         onCreateObjectEvent?.Invoke(rObject);
         iteratorList.Add(rObject);
-        Debug.Log($"CreateObject: {stopwatch.ElapsedTicks}");
     }
 
     public void DestroyObject(RObject rObject)
@@ -100,108 +103,27 @@ public class ObjectManager : IRegionListener
         destroyList.Add(rObject);
     }
 
-    public void CreateItem(Vector2Int pos, ItemDataDescriptor itemDesc, int amount)
-    {
-        Dictionary<Vector2Int, ItemObject> existItems = new Dictionary<Vector2Int, ItemObject>();
-        foreach (var objectDict in objects.Values)
-        {
-            foreach (var rObj in objectDict)
-            {
-                ItemObject itemObj = rObj.Value as ItemObject;
-                if (itemObj != null)
-                {
-                    existItems.Add(itemObj.MapTilePosition, itemObj);
-                }
-            }
-        }
-
-        if (existItems.ContainsKey(pos) == false)
-        {
-            ItemObject newItem = new ItemObject(itemDesc, Mathf.Min(amount, itemDesc.StackAmount));
-            newItem.MapTilePosition = pos;
-            CreateObject(newItem);
-            amount -= itemDesc.StackAmount;
-        }
-
-        if (amount > 0)
-        {
-            int searchAmount = 100;
-            //1/3/5/7/9
-            //1/2/3/4/5
-            for (int i = 2; i <= searchAmount; ++i)
-            {
-                int sqrtCeil = Mathf.CeilToInt(Mathf.Sqrt(i));
-                int squareLength = Mathf.RoundToInt(((sqrtCeil / 2) + 0.5f) * 2);
-                int prevSquareLength = squareLength - 2;
-                int tt = (squareLength - 1) / 2;
-
-                Vector2Int searchPos;
-
-                int insideIndex = i - prevSquareLength * prevSquareLength;
-
-                int side = Mathf.CeilToInt((float)insideIndex / (squareLength - 1)) - 1;
-                int squareIndex = insideIndex - side * (squareLength - 1) - 1;
-
-                if (side == 0)
-                {
-                    Vector2Int startPos = pos + new Vector2Int(tt, -tt + 1);
-                    searchPos = startPos + new Vector2Int(0, squareIndex);
-                }
-                else if (side == 1)
-                {
-                    Vector2Int startPos = pos + new Vector2Int(tt - 1, tt);
-                    searchPos = startPos + new Vector2Int(-squareIndex, 0);
-                }
-                else if (side == 2)
-                {
-                    Vector2Int startPos = pos + new Vector2Int(-tt, tt - 1);
-                    searchPos = startPos + new Vector2Int(0, -squareIndex);
-                }
-                else
-                {
-                    Vector2Int startPos = pos + new Vector2Int(-tt + 1, -tt);
-                    searchPos = startPos + new Vector2Int(squareIndex, 0);
-                }
-
-                if (existItems.TryGetValue(searchPos, out var itemObj) == true)
-                {
-                    if (itemObj.Desc == itemDesc && itemObj.Amount < itemDesc.StackAmount)
-                    {
-                        int add = Mathf.Min(amount, itemDesc.StackAmount - itemObj.Amount);
-                        itemObj.Amount += add;
-                        amount -= add;
-                    }
-                }
-                else if (GameManager.Instance.WorldMap.GetTileMovableWeight(searchPos) > 0)
-                {
-                    ItemObject newItem = new ItemObject(itemDesc, Mathf.Min(amount, itemDesc.StackAmount));
-                    newItem.MapTilePosition = searchPos;
-                    CreateObject(newItem);
-                    amount -= itemDesc.StackAmount;
-                }
-
-                if (amount <= 0)
-                    break;
-            }
-        }
-    }
-
     private void DestroyAllInList()
     {
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         foreach (var rObj in destroyList)
         {
-            objects[rObj.LocalRegion]?.Remove(rObj.IndexKey);
-            onDestroyObjectEvent?.Invoke(rObj);
-
-            int removeIndex = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
-            iteratorList.RemoveAt(removeIndex);
-
             rObj.Destroy();
+            objects[rObj.LocalRegion]?.Remove(rObj.IndexKey);
+
+            try
+            {
+                int idx = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
+                iteratorList.RemoveAt(idx);
+            }
+            catch (Exception e)
+            {
+                int idx = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
+            }
+            
+            onDestroyObjectEvent?.Invoke(rObj);
         }
 
         destroyList.Clear();
-        Debug.Log($"Destroy: {stopwatch.ElapsedTicks}");
     }
 
     public SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>> GetAllObjects()

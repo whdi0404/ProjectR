@@ -20,7 +20,10 @@ public class LocalRegion : IEquatable<LocalRegion>
     private WorldMap worldMap;
 
     public HashSet<LocalRegion> AdjacentRegion { get; private set; } = new HashSet<LocalRegion>();
-    
+
+    //벽 등의 이동 불가 지역인지
+    public bool IsClosedRegion { get; private set; }
+
     public Vector2Int GroupIndex { get; private set; }
 
     public BoundsInt Bounds { get; private set; }
@@ -30,12 +33,13 @@ public class LocalRegion : IEquatable<LocalRegion>
     public bool CheckUp { get; private set; }
     public bool CheckDown { get; private set; }
 
-    public LocalRegion(WorldMap worldMap, Vector2Int groupIndex, List<Vector2Int> tiles)
+    public LocalRegion(WorldMap worldMap, Vector2Int groupIndex, List<Vector2Int> tiles, bool isClosedRegion)
     {
         this.worldMap = worldMap;
         //바운드박스 만들어서 선체크 후, 겹치면 인접체크 하자.
         //인접한 타일들 따로 모아서 그것들끼리만 체크하자.
 
+        this.IsClosedRegion = isClosedRegion;
         GroupIndex = groupIndex;
         this.tiles = new HashSet<Vector2Int>(tiles);
 
@@ -157,7 +161,7 @@ public class LocalRegion : IEquatable<LocalRegion>
     }
 }
 
-public class RegionSystem : IPathFinderGraph<LocalRegion>
+public class RegionSystem
 {
     private WorldMap worldMap;
     //TileGroupIndex/regions
@@ -165,8 +169,6 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
 
     private SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>> allNodesDijkstraMap = new SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>>();
 
-    private List<(LocalRegion, float)> regionPathFind = new List<(LocalRegion, float)>();
-    public PathFinder<LocalRegion> PathFinder { get; private set; } = new PathFinder<LocalRegion>((a, b) => Vector3.Distance(a.Bounds.center, b.Bounds.center));
     private event Action<List<LocalRegion>, List<LocalRegion>> onRegionChangeEvent;
     public void Initialize(WorldMap worldMap)
     {
@@ -190,17 +192,21 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
             return;
 
         HashSet<Vector2Int> movableTiles = new HashSet<Vector2Int>();
+        List<Vector2Int> cantMoveTiles = new List<Vector2Int>();
 
         for (int x = 0; x < worldMap.TileGroupSize.x; ++x)
             for (int y = 0; y < worldMap.TileGroupSize.y; ++y)
             {
                 var tileDesc = tileFragmentData.fragmentData[x + y * worldMap.TileGroupSize.x];
                 if (tileDesc.MoveWeight == 0)
-                    continue;
-                movableTiles.Add(new Vector2Int(tileFragmentData.bounds.xMin + x, tileFragmentData.bounds.yMin + y));
+                    cantMoveTiles.Add(new Vector2Int(tileFragmentData.bounds.xMin + x, tileFragmentData.bounds.yMin + y));
+                else
+                    movableTiles.Add(new Vector2Int(tileFragmentData.bounds.xMin + x, tileFragmentData.bounds.yMin + y));
             }
 
         List<LocalRegion> regionList = new List<LocalRegion>();
+        //closedRegion 추가
+        regionList.Add(new LocalRegion(worldMap, groupIndex, cantMoveTiles, true));
         while (movableTiles.Count > 0)
         {
             Stack<Vector2Int> searchStack = new Stack<Vector2Int>();
@@ -248,11 +254,10 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
                     movableTiles.Remove(up);
                 }
             }
-            LocalRegion newRegion = new LocalRegion(worldMap, groupIndex, newRegionTiles);
+            LocalRegion newRegion = new LocalRegion(worldMap, groupIndex, newRegionTiles, false);
             regionList.Add(newRegion);
             CalculateAdjecentRegion(newRegion);
         }
-
         regions.Add(groupIndex, regionList);
 
         onRegionChangeEvent?.Invoke(oldRegionList, regionList);
@@ -261,14 +266,17 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
             RefreshDijkstraMap();
     }
 
-    public void CalculateAdjecentRegion(LocalRegion targetRegion)
+    private void CalculateAdjecentRegion(LocalRegion targetRegion)
     {
+        if (targetRegion.IsClosedRegion == true)
+            return;
+
         List<LocalRegion> regionList;
         if (regions.TryGetValue(targetRegion.GroupIndex, out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
             {
-                if (region == targetRegion)
+                if (region == targetRegion || region.IsClosedRegion == true)
                     continue;
 
                 if (targetRegion.Bounds.Intersects(region.Bounds) == true)
@@ -279,25 +287,25 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
         if (targetRegion.CheckLeft == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(-1, 0), out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
-                if (targetRegion.IsAdjacent(region) == true)
+                if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
         if (targetRegion.CheckRight == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(1, 0), out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
-                if (targetRegion.IsAdjacent(region) == true)
+                if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
         if (targetRegion.CheckDown == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(0, -1), out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
-                if (targetRegion.IsAdjacent(region) == true)
+                if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
         if (targetRegion.CheckUp == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(0, 1), out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
-                if (targetRegion.IsAdjacent(region) == true)
+                if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
     }
@@ -323,8 +331,6 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
 
     public bool IsReachable(Vector2Int start, Vector2Int dest)
     {
-        //regionPathFind.Clear();
-
         if (GetRegionFromTilePos(start, out var startRegion) == false)
             return false;
         if (GetRegionFromTilePos(dest, out var destRegion) == false)
@@ -339,6 +345,19 @@ public class RegionSystem : IPathFinderGraph<LocalRegion>
             return false;
 
         return dijkstraMap.TryGetValue(dest, out var cost);
+    }
+
+    public List<LocalRegion> GetAllReachableRegions(LocalRegion region)
+    {
+        if (this.allNodesDijkstraMap.TryGetValue(region, out var regions) == true)
+        {
+            var reachableList = regions.Keys.ToList();
+            reachableList.Add(region);
+
+            return reachableList;
+        }
+
+        return new List<LocalRegion>() { region };
     }
 
     public float GetTileMovableWeight(LocalRegion pos)

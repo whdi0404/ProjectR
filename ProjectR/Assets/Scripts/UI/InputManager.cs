@@ -26,7 +26,7 @@ public class InputManager : SingletonBehaviour<InputManager>
         base.Awake();
         selector = new RObjectSelector();
     }
-    // Update is called once per frame
+
     void Update()
     {
         if (Input.GetMouseButton(2) == true)
@@ -81,9 +81,14 @@ public class InputManager : SingletonBehaviour<InputManager>
                 if (pawn != null)
                 {
                     pawn.AI.Reset();
-                    pawn.AI.AddDirectOrder(new MovePosition(pickObj.tilePos));
                 }
             }
+        }
+
+        //TestCode
+        if (Input.GetKey(KeyCode.Escape) == true)
+        {
+            PlanningManager.Instance.Cancel();
         }
     }
 
@@ -115,16 +120,7 @@ public class InputManager : SingletonBehaviour<InputManager>
             selector.AddRObject(pickObj.rObj.RObj);
         }
 
-        if (Input.GetKey(KeyCode.A) == true)
-        {
-            SpawnTestPawn(CurrentMouseTilePosition);
-        }
-
-        if (Input.GetKey(KeyCode.S) == true)
-        {
-            var itemDesc = TableManager.GetTable<ItemDataTable>().Find("TestMaterial");
-            GameManager.Instance.ObjectManager.CreateItem(CurrentMouseTilePosition, itemDesc, itemDesc.StackAmount / 2);
-        }
+        TestClick(pickObj);
     }
 
     private void OnLeftMouseButtonUp(PickObject pickObj)
@@ -158,5 +154,27 @@ public class InputManager : SingletonBehaviour<InputManager>
         Pawn pawn = new Pawn();
         pawn.MapTilePosition = spawnPos;
         GameManager.Instance.ObjectManager.CreateObject(pawn);
+    }
+
+    private void TestClick(PickObject pickObj)
+    {
+        if (Input.GetKey(KeyCode.A) == true)
+        {
+            SpawnTestPawn(CurrentMouseTilePosition);
+        }
+
+        if (Input.GetKey(KeyCode.S) == true)
+        {
+            var itemDesc = TableManager.GetTable<ItemDataTable>().Find("TestMaterial");
+            GameManager.Instance.ObjectManager.ItemSystem.DropItem(CurrentMouseTilePosition, new Item(itemDesc, itemDesc.StackAmount / 2), out Item dropFailed);
+        }
+
+        if (Input.GetKey(KeyCode.D) == true)
+        {
+            if (pickObj.rObj != null)
+            {
+                GameManager.Instance.ObjectManager.DestroyObject(pickObj.rObj.RObj);
+            }
+        }
     }
 }

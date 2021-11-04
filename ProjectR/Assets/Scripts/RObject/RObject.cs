@@ -39,7 +39,21 @@ public abstract class RObject
         } 
     }
 
-    public Vector2 MapPosition { get; set; }
+    private Vector2 mapPosition;
+
+    public Vector2 MapPosition 
+    { 
+        get => mapPosition;
+        set
+        {
+            Vector2Int prevTilePos = MapTilePosition;
+            mapPosition = value;
+            if (HasUniqueId == true && prevTilePos != MapTilePosition)
+                RefreshRegion();
+        }
+    }
+
+    public bool HasUniqueId { get => UniqueId > 0; }
 
     public virtual Vector2Int Size { get => new Vector2Int(1, 1); }
 
@@ -53,12 +67,11 @@ public abstract class RObject
 
     public virtual Sprite VisualImage { get; set; }
 
+    private RObjectBehaviour behaviour;
+
     public RObject()
     {
-        UniqueId = GameManager.Instance.GetNewUID();
     }
-
-    private RObjectBehaviour behaviour;
 
     public void UpdateBehaviourVisible()
     {
@@ -75,25 +88,27 @@ public abstract class RObject
             behaviour = null;
         }
     }
+    public virtual void Init()
+    {
+        UniqueId = GameManager.Instance.GetNewUID();
+        RefreshRegion(true);
+    }
 
     public virtual void Update(float dt)
     {
         
     }
 
+    public abstract void VisualUpdate(float dt);
+
     public virtual void Destroy()
     {
         if (behaviour != null)
-        { 
+        {
             behaviour.gameObject.SetActive(false);
             behaviour = null;
         }
-
-        foreach (AITagSubject tag in Enum.GetValues(typeof(AITagSubject)))
-            GameManager.Instance.GetAITagSystem(tag).UnTagAll(this);
     }
-
-    public abstract void VisualUpdate(float dt);
 
     private bool IsInCamera()
     {

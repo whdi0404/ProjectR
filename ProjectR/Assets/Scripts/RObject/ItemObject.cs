@@ -4,18 +4,11 @@ using UnityEngine;
 
 public class ItemObject : RObject
 {
-    public ItemDataDescriptor Desc { get; private set; }
+    public SingleItemContainer ItemContainer { get; private set; }
 
-    public int Amount { get; set; }
-
-    //Item/ItemId
-    //WorkBench/AI
-    //Pawn/FoF
-
-    public ItemObject(ItemDataDescriptor desc, int amount)
+    public ItemObject(ItemDataDescriptor desc)
     {
-        Desc = desc;
-        Amount = amount;
+        ItemContainer = GameManager.Instance.ObjectManager.ItemSystem.CreateSingleItemContainer(this, desc);
         VisualImage = Resources.Load<Sprite>(desc.Image);
         IndexId = $"Item/{desc.Id}";
     }

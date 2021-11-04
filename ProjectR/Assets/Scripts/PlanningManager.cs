@@ -20,7 +20,6 @@ public class StructurePlanning : Planning
 {
     private Vector2Int startTilePos;
     private Vector2Int currentTilePos;
-    private PlanObject planObj;
     private bool isStructure;
 
     private StructurePlanningDescriptor planDesc;
@@ -30,8 +29,6 @@ public class StructurePlanning : Planning
         this.planDesc = planDesc;
 
         isStructure = planDesc.Structure != null;
-
-        planObj = new PlanObject(planDesc);
     }
 
     public override void LeftButtonDown(PickObject pickObject)
@@ -45,7 +42,7 @@ public class StructurePlanning : Planning
         {
             for ( int y = Mathf.Min( currentTilePos.y, startTilePos.y ); y <= Mathf.Max( currentTilePos.y, startTilePos.y ); ++y )
 			{
-				var newPlanObj = new PlanObject( planDesc );
+				var newPlanObj = new BuildPlanObject( planDesc );
 				newPlanObj.MapTilePosition = new Vector2Int( x, y );
 				GameManager.Instance.ObjectManager.CreateObject( newPlanObj );
 			}
@@ -55,13 +52,10 @@ public class StructurePlanning : Planning
     public override void LeftButton(PickObject pickObject)
     {
         currentTilePos = pickObject.tilePos;
-        planObj.MapPosition = InputManager.Instance.CurrentMouseTilePosition;
     }
 
     public override void Cancel()
     {
-        GameManager.Instance.ObjectManager.DestroyObject(planObj);
-        planObj = null;
     }
 
     public override void OnGUI()
@@ -83,19 +77,23 @@ public class PlanningManager : SingletonBehaviour<PlanningManager>
     {
         if(this.plan != null)
             Cancel();
+
         InputManager.Instance.OverrideLeftMouseButtonDown(plan.LeftButtonDown);
         InputManager.Instance.OverrideLeftMouseButton(plan.LeftButton);
         InputManager.Instance.OverrideLeftMouseButtonUp(plan.LeftButtonUp);
+        this.plan = plan;
     }
 
     public void Cancel()
     {
         if (plan == null)
             return;
+
         plan.Cancel();
         InputManager.Instance.OverrideLeftMouseButtonDown(null);
         InputManager.Instance.OverrideLeftMouseButton(null);
         InputManager.Instance.OverrideLeftMouseButtonUp(null);
+        this.plan = null;
     }
 
     public void OnGUI()

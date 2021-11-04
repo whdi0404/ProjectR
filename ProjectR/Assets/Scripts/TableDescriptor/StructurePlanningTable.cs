@@ -4,12 +4,6 @@ using System.Collections.Generic;
 using Table;
 using UnityEngine;
 
-public struct RequireItem
-{
-    public ItemDataDescriptor ItemDesc;
-    public int Amount;
-}
-
 public class StructurePlanningDescriptor : Descriptor
 {
     [GoogleRefColumn(typeof(TileAtlasInfoTable))]
@@ -21,7 +15,7 @@ public class StructurePlanningDescriptor : Descriptor
     [GoogleColumn]
     public float Workload { get; private set; }
 
-    public List<RequireItem> ReqItemList { get; private set; }
+    public List<Item> ReqItemList { get; private set; }
 
     public Vector2Int Size { get => InstallObject?.Size ?? new Vector2Int(1, 1); }
 
@@ -37,11 +31,11 @@ public class StructurePlanningDescriptor : Descriptor
     {
         string[] splitStrings = RequireItems.Split(',');
 
-        ReqItemList = new List<RequireItem>();
+        ReqItemList = new List<Item>();
         int arrayAmountHalf = splitStrings.Length / 2;
         for (int i = 0; i < arrayAmountHalf; ++i)
         {
-            RequireItem reqItem = new RequireItem();
+            Item reqItem = new Item();
             reqItem.ItemDesc = TableManager.GetTable<ItemDataTable>().Find(splitStrings[i * 2]);
             reqItem.Amount = int.Parse(splitStrings[i * 2 + 1]);
 
