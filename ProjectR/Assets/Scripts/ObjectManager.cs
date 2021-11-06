@@ -100,27 +100,28 @@ public class ObjectManager : IRegionListener
 
     public void DestroyObject(RObject rObject)
     {
-        destroyList.Add(rObject);
+        if(rObject.HasUniqueId == true)
+            destroyList.Add(rObject);
     }
 
     private void DestroyAllInList()
     {
         foreach (var rObj in destroyList)
         {
-            rObj.Destroy();
-            objects[rObj.LocalRegion]?.Remove(rObj.IndexKey);
+            if (rObj.HasUniqueId == false)
+                Debug.LogWarning("uid없는 오브젝트 삭제");
 
-            try
+            if (objects[rObj.LocalRegion]?.Remove(rObj.IndexKey) == true)
             {
                 int idx = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
                 iteratorList.RemoveAt(idx);
+                rObj.Destroy();
+                onDestroyObjectEvent?.Invoke(rObj);
             }
-            catch (Exception e)
+            else
             {
-                int idx = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
+                Debug.LogWarning($"오브젝트 삭제 실패(uid: {rObj.UniqueId}");
             }
-            
-            onDestroyObjectEvent?.Invoke(rObj);
         }
 
         destroyList.Clear();

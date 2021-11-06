@@ -107,6 +107,7 @@ public abstract class RObject
         {
             behaviour.gameObject.SetActive(false);
             behaviour = null;
+            UniqueId = 0;
         }
     }
 
