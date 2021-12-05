@@ -6,18 +6,21 @@ using System.Linq;
 using System;
 using System.Diagnostics;
 
-public class Pickup : ActionTask
+public class Pickup : ActionTask<ItemReserver>
 {
-    ItemReserver pickupItemRes;
-    public Pickup(ItemContainer itemContainer, List<Item> item)
+    public Pickup(ItemReserver reserver) : base(reserver)
     {
-        pickupItemRes = new ItemReserver(this, itemContainer, ItemReserver.Type.pickup, item);
-        GameManager.Instance.AIReserveSystem.RegistReserver(pickupItemRes);
     }
 
     public override IEnumerable<State> Run()
     {
-        if (Pawn.SetMove(pickupItemRes.ItemContainer.ParentObject.MapTilePosition) == false)
+        if (reserver.Dest.ParentObject != ParentAI.Pawn)
+        {
+            yield return State.Failed;
+        }
+
+        //Move
+        if (Pawn.SetMove(reserver.Source.ParentObject.MapTilePosition) == false)
         {
             yield return State.Failed;
         }
@@ -25,38 +28,37 @@ public class Pickup : ActionTask
         {
             yield return State.Running;
         }
-        foreach (var item in pickupItemRes.ItemList)
-        {
-            pickupItemRes.ItemContainer.MoveToOtherContainer(ParentAI.Pawn.Inventory, item, out Item moveFailed);
-        }
+
+        reserver.Source.MoveToOtherContainer(reserver.Dest, reserver.Item, out Item moveFailed);
 
         yield return State.Complete;
     }
 }
 
-public class Haul : ActionTask
+public class Haul : ActionTask<ItemReserver>
 {
-    ItemReserver haulItemRes;
-    public Haul(ItemContainer itemContainer, List<Item> item)
+    public Haul(ItemReserver reserver) : base(reserver)
     {
-        haulItemRes = new ItemReserver(this, itemContainer, ItemReserver.Type.haul, item);
-        GameManager.Instance.AIReserveSystem.RegistReserver(haulItemRes);
     }
 
     public override IEnumerable<State> Run()
     {
-        if (ParentAI.Pawn.SetMove(haulItemRes.ItemContainer.ParentObject.MapTilePosition) == false)
+        if (reserver.Source.ParentObject != ParentAI.Pawn)
         {
             yield return State.Failed;
         }
-        while (ParentAI.Pawn.IsMoving == true)
+
+        //Move
+        if (Pawn.SetMove(reserver.Dest.ParentObject.MapTilePosition) == false)
+        {
+            yield return State.Failed;
+        }
+        while (Pawn.IsMoving == true)
         {
             yield return State.Running;
         }
-        foreach (var item in haulItemRes.ItemList)
-        {
-            ParentAI.Pawn.Inventory.MoveToOtherContainer(haulItemRes.ItemContainer, item, out Item moveFailed);
-        }
+
+        reserver.Source.MoveToOtherContainer(reserver.Dest, reserver.Item, out Item moveFailed);
 
         yield return State.Complete;
     }
@@ -100,7 +102,7 @@ public class PawnAI
         runningState = null;
     }
 
-    public void AddAINode(Node node)
+    public void AddAINode(AINode node)
     {
         aiRoot.AddChild(node);
     }

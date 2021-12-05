@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -8,13 +9,7 @@ public class TileGroup : MonoBehaviour
 {
     private struct MeshProperty
     {
-        private static int size = 0;
-        public static int Size()
-        {
-            if (size == 0)
-                size = Marshal.SizeOf<MeshProperty>();
-            return size;
-        }
+        public static readonly int Size = Marshal.SizeOf<MeshProperty>();
 
         public int tex;
     }
@@ -104,7 +99,7 @@ public class TileGroup : MonoBehaviour
             }
         }
 
-        meshPropertiesBuffer = new ComputeBuffer(width * height, MeshProperty.Size());
+        meshPropertiesBuffer = new ComputeBuffer(width * height, MeshProperty.Size);
         meshPropertiesBuffer.SetData(meshProperties);
         cloneMat.SetBuffer("_Properties", meshPropertiesBuffer);
         cloneMat.SetTexture("_AtlasTexture", atlasObject.AtlasTexture);
@@ -123,6 +118,7 @@ public class TileGroup : MonoBehaviour
     public void SetAllTile(string spriteId)
     {
         int spriteIndex = atlasObject.GetSpriteIndex(spriteId);
+
         for (int i = 0; i < meshProperties.Length; ++i)
             meshProperties[i].tex = spriteIndex;
     }

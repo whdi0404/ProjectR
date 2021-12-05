@@ -166,7 +166,7 @@ public class InputManager : SingletonBehaviour<InputManager>
         if (Input.GetKey(KeyCode.S) == true)
         {
             var itemDesc = TableManager.GetTable<ItemDataTable>().Find("TestMaterial");
-            GameManager.Instance.ObjectManager.ItemSystem.DropItem(CurrentMouseTilePosition, new Item(itemDesc, itemDesc.StackAmount / 2), out Item dropFailed);
+            GameManager.Instance.ItemSystem.DropItem(CurrentMouseTilePosition, new Item(itemDesc, itemDesc.StackAmount / 2), out Item dropFailed);
         }
 
         if (Input.GetKey(KeyCode.D) == true)

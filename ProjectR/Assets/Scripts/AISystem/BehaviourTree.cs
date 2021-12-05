@@ -12,10 +12,10 @@ namespace BT
         Complete,
     };
     
-    public abstract class Node
+    public abstract class AINode
     {
-        public event Action<Node> onCancel;
-        public event Action<Node> onComplete;
+        public event Action<AINode> onCancel;
+        public event Action<AINode> onComplete;
         public PawnAI ParentAI { get; protected set; }
         public Pawn Pawn { get => ParentAI?.Pawn; }
 
@@ -33,42 +33,49 @@ namespace BT
             if (IsEnd) return;
             IsEnd = true;
             onCancel?.Invoke(this);
-            BreakReserver();
         }
         public virtual void Complete()
         {
             if (IsEnd) return;
-            onComplete?.Invoke(this);
-            BreakReserver();
             IsEnd = true;
+            onComplete?.Invoke(this);
         }
 
-        public void BreakReserver()
-        {
-            GameManager.Instance.AIReserveSystem.BreakAllReserverFromNode(this);
-        }
-
-        public static void DependEachOther(Node a, Node b)
-        {
-            a.onCancel += (node) => { b.Cancel(); };
-            b.onCancel += (node) => { a.Cancel(); };
-        }
-
-        public static void Depend(Node child, Node parent)
-        {
-            parent.onCancel += (node) => { child.Cancel(); };
-        }
-    }
-    public abstract class ActionTask : Node
-    {
     }
 
-    public abstract class CompositeTask : Node
+    public abstract class ActionTask<TReserver> : AINode where TReserver : ReserverBase
     {
-        protected List<Node> children = new List<Node>();
-        protected List<Node> GetChildren() { return children; }
+        protected TReserver reserver;
+        public ActionTask(TReserver reserver)
+        {
+            this.reserver = reserver;
+            reserver.onDestroyAfterComplete += Complete;
+            reserver.onDestroyBeforeComplete += Cancel;
+        }
+        public override void Complete()
+        {
+            reserver.onDestroyAfterComplete -= Complete;
+            reserver.onDestroyBeforeComplete -= Cancel;
+            reserver.Complete();
+            reserver.Destroy();
+            base.Complete();
+        }
 
-        public void AddChild(Node node)
+        public override void Cancel()
+        {
+            reserver.onDestroyAfterComplete -= Complete;
+            reserver.onDestroyBeforeComplete -= Cancel;
+            reserver.Destroy();
+            base.Cancel();
+        }
+    }
+
+    public abstract class CompositeTask : AINode
+    {
+        protected List<AINode> children = new List<AINode>();
+        protected List<AINode> GetChildren() { return children; }
+
+        public void AddChild(AINode node)
         {
             node.SetParent(ParentAI);
             children.Add(node);
@@ -76,21 +83,25 @@ namespace BT
             node.onCancel += OnCancelChild;
         }
 
-        protected virtual void OnCompleteChild(Node child)
+        protected virtual void OnCompleteChild(AINode child)
         {
             children.Remove(child);
         }
 
-        protected virtual void OnCancelChild(Node child)
+        protected virtual void OnCancelChild(AINode child)
         {
             children.Remove(child);
         }
     }
 
+    //public abstract class AIEvaluator
+    //{
+    //    public abstract bool Evaluate(PawnAI pawnAI, out Node node);
+    //}
+
     public class AIRoot : CompositeTask
     {
         private bool cancelRunningState;
-
         public AIRoot(PawnAI pawnAI)
         {
             ParentAI = pawnAI;
@@ -107,7 +118,7 @@ namespace BT
                 }
                 else
                 {
-                    Node child = children[0];
+                    AINode child = children[0];
                     foreach (State state in child.Run())
                     {
                         if (cancelRunningState == true)
@@ -135,75 +146,82 @@ namespace BT
             }
         }
 
+        //이것들을 어디다가 뺄지 생각해보자.
         public void EvaluateAI()
         {
-            List<Node> nodes;
-            if (EvaluateBuildCarry(out nodes) == true
-             || false)
+            TakeWork();
+            EvaluateCarryItem("Build");
+        }
+
+        public void TakeWork()
+        {
+            var itemReserveSystem = GameManager.Instance.ItemSystem.ReserveSystem;
+            var pickupList = itemReserveSystem.GetAllReserverFromDest(Pawn.Inventory);
+            foreach (var reserver in pickupList)
             {
-                foreach (var node in nodes)
-                    AddChild(node);
+                AddChild(new Pickup(reserver));
+                return;
+            }
+
+            var haulList = itemReserveSystem.GetAllReserverFromSource(Pawn.Inventory);
+            foreach (var reserver in haulList)
+            {
+                AddChild(new Haul(reserver));
+                return;
             }
         }
 
-        public bool EvaluateBuildCarry(out List<Node> result)
+        public void EvaluateCarryItem(string workid)
         {
-            result = null;
             var objManager = GameManager.Instance.ObjectManager;
+            var itemSystem = GameManager.Instance.ItemSystem;
 
-            if (Pawn.Inventory.RemainReserveWeight == 0)
-                return false;
+            if (Pawn.Inventory.RemainWeightIncludeIn == 0)
+                return;
 
-            List<Node> pickups = new List<Node>();
-            List<Node> hauls = new List<Node>();
-
-            foreach (var planObj in objManager.GetNearestObjectFromIndexId<BuildPlanObject>("Work/Build", Pawn.MapTilePosition))
+            foreach (var workObj in objManager.GetNearestObjectFromIndexId<WorkPlaceObject>($"Work/{workid}", Pawn.MapTilePosition))
             {
-                var work = planObj.GetWork(Pawn);
-                var reqItemList = work.WorkHolder.GetReserveRemainReqItemList();
-
-                foreach (Item reqItem in reqItemList)
+                var work = workObj.GetWork(Pawn);
+                foreach (Item req in work.WorkHolder.GetReserveRemainReqItemList())
                 {
-                    Item rReqItem = reqItem;
-
-                    if (Pawn.Inventory.EnableToAddReserveItemAmount(rReqItem.ItemDesc) == 0)
+                    Item reqItem = req;
+                    if (Pawn.Inventory.EnableToAddIncludeInItemAmount(reqItem.ItemDesc) == 0)
                         continue;
 
-                    foreach (var itemObj in objManager.GetNearestObjectFromIndexId<ItemObject>($"Item/{rReqItem.ItemDesc.Id}", Pawn.MapTilePosition))
+                    foreach (var itemObj in objManager.GetNearestObjectFromIndexId<ItemObject>($"Item/{reqItem.ItemDesc.Id}", Pawn.MapTilePosition))
                     {
-                        int carriableAmount = Pawn.Inventory.EnableToAddReserveItemAmount(rReqItem.ItemDesc);
-                        carriableAmount = Mathf.Min(Mathf.Min(carriableAmount, itemObj.ItemContainer.ReserveItem.Amount), rReqItem.Amount);
+                        int carriableAmount = Pawn.Inventory.EnableToAddIncludeInItemAmount(reqItem.ItemDesc);
+                        int itemAmount = itemObj.ItemContainer.ItemExcludeOut.Amount;
+                        if (itemAmount == 0)
+                            continue;
 
-                        var pickupNode = new Pickup(itemObj.ItemContainer, new List<Item> { new Item(rReqItem.ItemDesc, carriableAmount) });
-                        var haulNode = new Haul(work.WorkHolder, new List<Item> { new Item(rReqItem.ItemDesc, carriableAmount) });
-                        Node.DependEachOther(pickupNode, haulNode);
-                        pickups.Add(pickupNode);
-                        hauls.Add(haulNode);
+                        carriableAmount = Mathf.Min(Mathf.Min(carriableAmount, itemAmount), reqItem.Amount);
 
-                        rReqItem.Amount -= carriableAmount;
 
-                        if (rReqItem.Amount <= 0)
+                        //pickup reserve
+                        itemSystem.ReserveSystem.AddReserver(new ItemReserver(itemObj.ItemContainer, Pawn.Inventory, new Item(reqItem.ItemDesc, carriableAmount)));
+
+                        //haul reserve
+                        itemSystem.ReserveSystem.AddReserver(new ItemReserver(Pawn.Inventory, work.WorkHolder, new Item(reqItem.ItemDesc, carriableAmount)));
+
+                        reqItem.Amount -= carriableAmount;
+
+                        if (reqItem.Amount <= 0)
                             break;
 
-                        if (Pawn.Inventory.EnableToAddReserveItemAmount(rReqItem.ItemDesc) == 0)
+                        if (Pawn.Inventory.EnableToAddIncludeInItemAmount(reqItem.ItemDesc) == 0)
                             break;
                     }
                 }
             }
-
-            result = new List<Node>();
-            result.AddRange(pickups);
-            result.AddRange(hauls);
-
-            return result.Count > 0;
         }
 
-        protected override void OnCancelChild(Node node)
+        protected override void OnCancelChild(AINode node)
         {
             cancelRunningState = children.Count > 0 && node == children[0];
             base.OnCancelChild(node);
         }
-        protected override void OnCompleteChild(Node node)
+        protected override void OnCompleteChild(AINode node)
         {
             base.OnCompleteChild(node);
         }

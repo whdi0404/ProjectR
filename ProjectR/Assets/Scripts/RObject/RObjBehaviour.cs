@@ -36,4 +36,9 @@ public class RObjectBehaviour : MonoBehaviour
         }
             
     }
+
+    private void OnGUI()
+    {
+        RObj.OnGUI();
+    }
 }

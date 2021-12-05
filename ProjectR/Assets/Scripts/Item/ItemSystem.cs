@@ -2,9 +2,37 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class ItemReserverSystem : ReserveSystemBase<ItemReserver, ItemContainer, ItemContainer>
+{
+}
+
+public class ItemReserver : ReserverBase<ItemContainer, ItemContainer>
+{
+	public Item Item { get; private set; }
+
+	public ItemReserver(ItemContainer source, ItemContainer dest, Item item) : base(source,dest)
+	{
+		Item = item;
+	}
+
+    public override void Destroy()
+    {
+		GameManager.Instance.ItemSystem.ReserveSystem.RemoveReserver(this);
+    }
+}
+
 public partial class ItemSystem : IObjectManagerListener
 {
+
 	private SmartDictionary<RObject, List<ItemContainer>> containierDict = new SmartDictionary<RObject, List<ItemContainer>>();
+
+	public ItemReserverSystem ReserveSystem { get; private set; }
+
+	public ItemSystem()
+	{
+		ReserveSystem = new ItemReserverSystem();
+	}
+
 
 	public bool DropItem(Vector2Int pos, Item dropItem, out Item dropFailed)
 	{
@@ -19,10 +47,10 @@ public partial class ItemSystem : IObjectManagerListener
 		if (regionSystem.GetRegionFromTilePos(pos, out LocalRegion posRegion) == false || posRegion.IsClosedRegion == true)
 			return false;
 
-		HashSet<LocalRegion> reachableRegins = new HashSet<LocalRegion>(regionSystem.GetAllReachableRegions(posRegion));
+		var reachableRegions = regionSystem.GetAllReachableRegions(posRegion);
 		Dictionary<Vector2Int, ItemObject> existItems = new Dictionary<Vector2Int, ItemObject>();
 
-		foreach (var region in reachableRegins)
+		foreach (var region in reachableRegions)
 		{
 			List<RObject> items = objectManager.GetObjects(region, "Item");
 			foreach (var i in items)
@@ -37,67 +65,46 @@ public partial class ItemSystem : IObjectManagerListener
 			objectManager.CreateObject(newItem);
 		}
 
-		if (dropFailed.Amount > 0)
-		{
-			int searchAmount = 100;
-			//1/3/5/7/9
-			//1/2/3/4/5
-			for (int i = 2; i <= searchAmount; ++i)
-			{
-				int sqrtCeil = Mathf.CeilToInt(Mathf.Sqrt(i));
-				int squareLength = Mathf.RoundToInt(((sqrtCeil / 2) + 0.5f) * 2);
-				int prevSquareLength = squareLength - 2;
-				int tt = (squareLength - 1) / 2;
+        if (dropFailed.Amount > 0)
+        {
+            PriorityQueue<NearNode<Vector2Int>> pq = new PriorityQueue<NearNode<Vector2Int>>();
 
-				Vector2Int searchPos;
+            foreach (var region in reachableRegions)
+            {
+                foreach (var tilepos in region.GetTiles())
+                {
+                    NearNode<Vector2Int> serachTile = new NearNode<Vector2Int>();
+                    serachTile.position = tilepos;
+                    serachTile.distance = VectorExt.Get8DirectionLength(serachTile.position, pos);
 
-				int insideIndex = i - prevSquareLength * prevSquareLength;
+                    pq.Enqueue(serachTile);
+                }
+            }
 
-				int side = Mathf.CeilToInt((float)insideIndex / (squareLength - 1)) - 1;
-				int squareIndex = insideIndex - side * (squareLength - 1) - 1;
+            while (pq.Count != 0)
+            {
+                var node = pq.Dequeue();
+                if (existItems.TryGetValue(node.position, out var itemObj) == true)
+                {
+                    if (itemObj.ItemContainer.Item.ItemDesc == dropItem.ItemDesc)
+                    {
+                        itemObj.ItemContainer.AddItems(dropFailed, out dropFailed);
+                    }
+                }
+                else
+                {
+                    ItemObject newItem = new ItemObject(dropItem.ItemDesc);
+                    newItem.ItemContainer.AddItems(dropFailed, out dropFailed);
+                    newItem.MapTilePosition = node.position;
+                    objectManager.CreateObject(newItem);
+                }
 
-				if (side == 0)
-				{
-					Vector2Int startPos = pos + new Vector2Int(tt, -tt + 1);
-					searchPos = startPos + new Vector2Int(0, squareIndex);
-				}
-				else if (side == 1)
-				{
-					Vector2Int startPos = pos + new Vector2Int(tt - 1, tt);
-					searchPos = startPos + new Vector2Int(-squareIndex, 0);
-				}
-				else if (side == 2)
-				{
-					Vector2Int startPos = pos + new Vector2Int(-tt, tt - 1);
-					searchPos = startPos + new Vector2Int(0, -squareIndex);
-				}
-				else
-				{
-					Vector2Int startPos = pos + new Vector2Int(-tt + 1, -tt);
-					searchPos = startPos + new Vector2Int(squareIndex, 0);
-				}
+                if (dropFailed.Amount <= 0)
+                    return true;
+            }
+        }
 
-				if (existItems.TryGetValue(searchPos, out var itemObj) == true)
-				{
-					if (itemObj.ItemContainer.Item.ItemDesc == dropItem.ItemDesc)
-					{
-						itemObj.ItemContainer.AddItems(dropFailed, out dropFailed);
-					}
-				}
-				else if (GameManager.Instance.WorldMap.GetTileMovableWeight(searchPos) > 0)
-				{
-					ItemObject newItem = new ItemObject(dropItem.ItemDesc);
-					newItem.ItemContainer.AddItems(dropFailed, out dropFailed);
-					newItem.MapTilePosition = pos;
-					objectManager.CreateObject(newItem);
-				}
-
-				if (dropFailed.Amount <= 0)
-					return true;
-			}
-		}
-
-		return false;
+        return false;
 	}
 
 	public bool DropItem(Vector2Int pos, List<Item> dropItems, out List<Item> dropFailedList)
@@ -105,14 +112,14 @@ public partial class ItemSystem : IObjectManagerListener
 		dropFailedList = new List<Item>();
 		foreach (var item in dropItems)
 		{
-			if (GameManager.Instance.ObjectManager.ItemSystem.DropItem(pos, item, out Item dropFailed) == true)
+			if (GameManager.Instance.ItemSystem.DropItem(pos, item, out Item dropFailed) == true)
 				dropFailedList.Add(dropFailed);
 		}
 
 		return dropFailedList.Count == 0;
 	}
 
-	public List<ItemContainer> GetOrMakeContainerList(RObject parentObj)
+	private List<ItemContainer> GetOrMakeContainerList(RObject parentObj)
 	{
 		if (containierDict.TryGetValue(parentObj, out var containerList) == false)
 		{
@@ -130,6 +137,7 @@ public partial class ItemSystem : IObjectManagerListener
 
 		return container;
 	}
+
 	public Inventory CreateInventory(RObject parentObj)
 	{
 		Inventory container = new Inventory(parentObj);
@@ -137,6 +145,7 @@ public partial class ItemSystem : IObjectManagerListener
 
 		return container;
 	}
+
 	public WorkHolder CreateWorkHolder(RObject parentObj, List<Item> requireItem)
 	{
 		WorkHolder container = new WorkHolder(parentObj, requireItem);
@@ -150,6 +159,19 @@ public partial class ItemSystem : IObjectManagerListener
 		return GetOrMakeContainerList(rObj);
 	}
 
+	public void DestroyContainer(ItemContainer itemContainer)
+	{
+		if (containierDict.TryGetValue(itemContainer.ParentObject, out List<ItemContainer> containerList))
+		{
+			int index = containerList.IndexOf(itemContainer);
+			if (index != -1)
+			{
+				itemContainer.OnDestroy();
+				containerList.RemoveAt(index);
+			}
+		}
+	}
+
 	public void OnCreateObject(RObject rObject)
     {
     }
@@ -159,21 +181,11 @@ public partial class ItemSystem : IObjectManagerListener
 		if (containierDict.TryGetValue(rObject, out List<ItemContainer> containerList))
 		{
 			foreach (var itemContainer in containerList)
+			{
 				itemContainer.OnDestroy();
+			}
 			containierDict.Remove(rObject);
 		}
 	}
 
-	public void DestroyContainer(ItemContainer itemContainer)
-    {
-        if (containierDict.TryGetValue(itemContainer.ParentObject, out List<ItemContainer> containerList))
-        {
-            int index = containerList.IndexOf(itemContainer);
-            if (index != -1)
-            {
-                itemContainer.OnDestroy();
-                containerList.RemoveAt(index);
-            }
-        }
-    }
 }

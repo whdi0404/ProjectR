@@ -8,26 +8,26 @@ public class WorldMapRenderer
 
 	private TileGroup[,] tileGroups;
 	private Vector2Int tileGroupSize { get => worldMap.TileGroupSize; }
-	private Vector2Int tileGroupAmount;
+	private Vector2Int renderTileGroupAmount;
 
 	private AtlasObject atlasObject;
 	private Material tileGroupMaterial;
 
 	private Camera mainCamera;
 
-    public void Initialize(WorldMap worldMap, Vector2Int tileGroupAmount)
+    public void Initialize(WorldMap worldMap, Vector2Int renderTileGroupAmount)
 	{
 		this.worldMap = worldMap;
-		this.tileGroupAmount = tileGroupAmount;
+		this.renderTileGroupAmount = renderTileGroupAmount;
 
 		atlasObject = Resources.Load<AtlasObject>("Atlas/TileAtlasObject");
 		tileGroupMaterial = Resources.Load<Material>("Materials/TileMaterial");
 
 		mainCamera = Camera.main;
 
-		tileGroups = new TileGroup[tileGroupAmount.x, tileGroupAmount.y];
-        for (int x = 0; x < tileGroupAmount.x; ++x)
-            for (int y = 0; y < tileGroupAmount.y; ++y)
+        tileGroups = new TileGroup[renderTileGroupAmount.x, renderTileGroupAmount.y];
+        for (int x = 0; x < renderTileGroupAmount.x; ++x)
+            for (int y = 0; y < renderTileGroupAmount.y; ++y)
             {
                 GameObject go = new GameObject("TileGroup");
                 TileGroup tileGroup = go.AddComponent<TileGroup>();
@@ -50,18 +50,16 @@ public class WorldMapRenderer
 
 		Vector2Int groupIndex = worldMap.TilePosToGroupIndex(tile);
 
-		Vector2Int offset = centerGroupPos + Vector2Int.one * -tileGroupAmount / 2;
-
-		Vector2Int rendererIndex = groupIndex - offset;
+		Vector2Int offset = centerGroupPos + Vector2Int.one * -renderTileGroupAmount / 2;
 
 		if (groupIndex.x < offset.x
-			|| groupIndex.x >= offset.x + tileGroupAmount.x
+			|| groupIndex.x >= offset.x + renderTileGroupAmount.x
 			|| groupIndex.y < offset.y
-			|| groupIndex.y >= offset.y + tileGroupAmount.y)
+			|| groupIndex.y >= offset.y + renderTileGroupAmount.y)
 			return;
 
-		int ix = groupIndex.x % tileGroupAmount.x;
-		int iy = groupIndex.y % tileGroupAmount.y;
+		int ix = groupIndex.x % renderTileGroupAmount.x;
+		int iy = groupIndex.y % renderTileGroupAmount.y;
 
 		Vector2Int fragmentTile = tile - groupIndex * worldMap.TileGroupSize;
 
@@ -80,14 +78,14 @@ public class WorldMapRenderer
 
 		Vector2Int groupMovedVec = centerGroupPos - prevCenterGroupPos;
 
-		Vector2Int groupAmountStartOffset = -tileGroupAmount / 2;
-		for (int x = 0; x < tileGroupAmount.x; ++x)
-			for (int y = 0; y < tileGroupAmount.y; ++y)
+		Vector2Int groupAmountStartOffset = -renderTileGroupAmount / 2;
+		for (int x = 0; x < renderTileGroupAmount.x; ++x)
+			for (int y = 0; y < renderTileGroupAmount.y; ++y)
 			{
-				int osX = x + groupMovedVec.x;
-				int osY = y + groupMovedVec.y;
-				if (first == false && (osX >= 0 && osX < tileGroupAmount.x &&
-					osY >= 0 && osY < tileGroupAmount.y))
+				int offsetX = x + groupMovedVec.x;
+				int offsetY = y + groupMovedVec.y;
+				if (first == false && (offsetX >= 0 && offsetX < renderTileGroupAmount.x &&
+					offsetY >= 0 && offsetY < renderTileGroupAmount.y))
 					continue;
 
 				Vector2Int groupPos = new Vector2Int(
@@ -95,12 +93,12 @@ public class WorldMapRenderer
 				centerGroupPos.y + groupAmountStartOffset.y + y
 				);
 
-				int ix = groupPos.x % tileGroupAmount.x;
-				int iy = groupPos.y % tileGroupAmount.y;
+				int ix = groupPos.x % renderTileGroupAmount.x;
+				int iy = groupPos.y % renderTileGroupAmount.y;
 				if (ix < 0)
-					ix += tileGroupAmount.x;
+					ix += renderTileGroupAmount.x;
 				if (iy < 0)
-					iy += tileGroupAmount.y;
+					iy += renderTileGroupAmount.y;
 
 				Vector2Int v = groupPos * tileGroupSize;
 

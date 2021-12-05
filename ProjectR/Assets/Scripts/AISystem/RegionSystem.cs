@@ -137,6 +137,12 @@ public class LocalRegion : IEquatable<LocalRegion>
         b.AdjacentRegion.Add(a);
     }
 
+    public IEnumerable<Vector2Int> GetTiles()
+    { 
+        foreach(var tile in tiles)
+            yield return tile;
+    }
+
     public void DrawOnGUI(Color color, bool drawAdjacent)
     {
         foreach (var tile in outlineTiles)
@@ -170,6 +176,7 @@ public class RegionSystem
     private SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>> allNodesDijkstraMap = new SmartDictionary<LocalRegion, SmartDictionary<LocalRegion, (LocalRegion, int)>>();
 
     private event Action<List<LocalRegion>, List<LocalRegion>> onRegionChangeEvent;
+
     public void Initialize(WorldMap worldMap)
     {
         this.worldMap = worldMap;
@@ -279,30 +286,30 @@ public class RegionSystem
                 if (region == targetRegion || region.IsClosedRegion == true)
                     continue;
 
-                if (targetRegion.Bounds.Intersects(region.Bounds) == true)
+                if (targetRegion.IsAdjacent(region) == true)
                     LocalRegion.Link(targetRegion, region);
             }
         }
 
-        if (targetRegion.CheckLeft == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(-1, 0), out regionList) == true)
+        if (targetRegion.CheckLeft == true && regions.TryGetValue(targetRegion.GroupIndex + Vector2Int.left, out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
                 if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
-        if (targetRegion.CheckRight == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(1, 0), out regionList) == true)
+        if (targetRegion.CheckRight == true && regions.TryGetValue(targetRegion.GroupIndex + Vector2Int.right, out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
                 if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
-        if (targetRegion.CheckDown == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(0, -1), out regionList) == true)
+        if (targetRegion.CheckDown == true && regions.TryGetValue(targetRegion.GroupIndex + Vector2Int.down, out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
                 if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
                     LocalRegion.Link(targetRegion, region);
         }
-        if (targetRegion.CheckUp == true && regions.TryGetValue(targetRegion.GroupIndex + new Vector2Int(0, 1), out regionList) == true)
+        if (targetRegion.CheckUp == true && regions.TryGetValue(targetRegion.GroupIndex + Vector2Int.up, out regionList) == true)
         {
             foreach (LocalRegion region in regionList)
                 if (targetRegion.IsAdjacent(region) == true && region.IsClosedRegion == false)
@@ -347,22 +354,14 @@ public class RegionSystem
         return dijkstraMap.TryGetValue(dest, out var cost);
     }
 
-    public List<LocalRegion> GetAllReachableRegions(LocalRegion region)
+    public IEnumerable<LocalRegion> GetAllReachableRegions(LocalRegion region)
     {
-        if (this.allNodesDijkstraMap.TryGetValue(region, out var regions) == true)
+        if (allNodesDijkstraMap.TryGetValue(region, out var regions) == true)
         {
-            var reachableList = regions.Keys.ToList();
-            reachableList.Add(region);
-
-            return reachableList;
+            return regions.Keys;
         }
 
         return new List<LocalRegion>() { region };
-    }
-
-    public float GetTileMovableWeight(LocalRegion pos)
-    {
-        return 1f;
     }
 
     public IEnumerable<(LocalRegion, float)> GetMovableAdjacentTiles(LocalRegion pos, bool includeDiagonal)
@@ -410,7 +409,7 @@ public class RegionSystem
 
     //Key: 목표위치 Value: (이전위치,비용)
     //길찾기에 활용하기 위해 이전위치를 저장함. 목표위치까지의 경로를 알고싶으면, 목표위치의 이전위치를 순차적으로 찾아가면 됨.
-    SmartDictionary<LocalRegion, (LocalRegion, int)> Dijkstra(LocalRegion startNode)
+    private SmartDictionary<LocalRegion, (LocalRegion, int)> Dijkstra(LocalRegion startNode)
     {
         SmartDictionary<LocalRegion, (LocalRegion, int)> djikstraDict = new SmartDictionary<LocalRegion, (LocalRegion, int)>();
 

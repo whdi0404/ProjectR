@@ -1,7 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
+
+public interface IWorldMapListener
+{
+    void OnChangeTile(Vector2Int groupIndex, Vector2Int tilePos, AtlasInfoDescriptor prevTile, AtlasInfoDescriptor newTile);
+}
 
 public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 {
@@ -62,6 +69,8 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 	public IEnumerable<Vector2Int> ExistGroupList { get => tileGroupDict.Keys; }
 
 	public PathFinder<Vector2Int> PathFinder { get; private set; } = new PathFinder<Vector2Int>((a, b) => VectorExt.Get8DirectionLength(a, b));
+
+	private event Action<Vector2Int, Vector2Int, AtlasInfoDescriptor, AtlasInfoDescriptor> onChangeTile;
 
 	private void Awake()
 	{
@@ -237,14 +246,19 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		}
 	}
 
-	public void SetTile(Vector2Int pos, AtlasInfoDescriptor tileDesc)
+	public void SetTile(Vector2Int tilePos, AtlasInfoDescriptor tileDesc)
 	{
-		Vector2Int groupIndex = TilePosToGroupIndex(pos);
+		Vector2Int groupIndex = TilePosToGroupIndex(tilePos);
+
+		AtlasInfoDescriptor prevTile = null;
 
 		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
         {
-            fragmentData.TrySetTile(pos, tileDesc);
-        }
+			if (fragmentData.TryGetTile(tilePos, out prevTile) == true)
+			{ 
+				fragmentData.TrySetTile(tilePos, tileDesc);
+			}
+		}
         else
         {
             Vector2Int groupStartPos = groupIndex * TileGroupSize;
@@ -255,9 +269,21 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
             tileGroupDict[groupIndex] = new TileFragmentData(bounds);
         }
 
+		onChangeTile?.Invoke(groupIndex, tilePos, prevTile, tileDesc);
+
 		RegionSystem?.CalculateLocalRegion(groupIndex);
 
-		worldMapRenderer?.OnChangeTile(pos);
+		worldMapRenderer?.OnChangeTile(tilePos);
+	}
+
+	public void AddListener(IWorldMapListener listener)
+	{
+		onChangeTile += listener.OnChangeTile;
+	}
+
+	public void RemoveListener(IWorldMapListener listener)
+	{
+		onChangeTile -= listener.OnChangeTile;
 	}
 
 	public Vector2Int TilePosToGroupIndex(Vector2Int pos)

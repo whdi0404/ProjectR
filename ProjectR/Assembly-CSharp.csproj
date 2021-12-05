@@ -113,6 +113,7 @@
     <Compile Include="Assets\Scripts\UI\UIManager.cs" />
     <Compile Include="Assets\Scripts\AISystem\PawnAI.cs" />
     <Compile Include="Assets\Scripts\WorldMap\WorldMapRenderer.cs" />
+    <Compile Include="Assets\Scripts\AISystem\AIReserveSystem.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uTransformBinding.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uContextInterface.cs" />
     <Compile Include="Assets\Scripts\UI\Context\UIRootContext.cs" />
@@ -139,7 +140,7 @@
     <Compile Include="Assets\M4u\Scripts\M4uInputFieldBinding.cs" />
     <Compile Include="Assets\M4u\Scripts\M4uDisableAttribute.cs" />
     <Compile Include="Assets\Scripts\GoogleSheet\CompositeSheetAttribute.cs" />
-    <Compile Include="Assets\Scripts\AISystem\AIReserveSystem.cs" />
+    <Compile Include="Assets\Scripts\Constant\RObjectIdMaker.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -8,6 +9,20 @@ public abstract class WorkPlaceObject : RObject
     public abstract WorkBase GetWork(Pawn pawn);
 
     public abstract void OnCompleteWork(WorkBase work);
+
+    public override void OnGUI()
+    {
+        base.OnGUI();
+        var work = GetWork(null);
+
+        Vector2 v = CameraManager.Instance.MainCamera.WorldToScreenPoint(this.MapPosition);
+        v.y = Screen.height - v.y;
+
+        foreach (var item in work.WorkHolder.GetRemainReqItemList())
+        {
+            GUI.Label(new Rect(v, new Vector2(200, 20)), $"{item.Amount}");
+        }
+    }
 }
 
 
@@ -19,10 +34,10 @@ public abstract class WorkBase
     public WorkBase(WorkPlaceObject workPlace, List<Item> requireItemList)
     {
         WorkPlace = workPlace;
-        WorkHolder = GameManager.Instance.ObjectManager.ItemSystem.CreateWorkHolder(workPlace, requireItemList);
+        WorkHolder = GameManager.Instance.ItemSystem.CreateWorkHolder(workPlace, requireItemList);
     }
 
-    public bool IsWorkable { get => WorkHolder.GetRemainReqItemList().Count == 0; }
+    public bool IsWorkable { get => WorkHolder.GetRemainReqItemList().FirstOrDefault().Amount == 0; }
 
     public float RemainWorkload { get; protected set; }
 
@@ -45,7 +60,7 @@ public abstract class WorkBase
 
     public virtual void Cancel()
     {
-        WorkHolder.OnDestroy();
+        GameManager.Instance.ItemSystem.DestroyContainer(WorkHolder);
     }
 }
 

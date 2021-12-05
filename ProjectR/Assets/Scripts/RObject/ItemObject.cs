@@ -8,7 +8,7 @@ public class ItemObject : RObject
 
     public ItemObject(ItemDataDescriptor desc)
     {
-        ItemContainer = GameManager.Instance.ObjectManager.ItemSystem.CreateSingleItemContainer(this, desc);
+        ItemContainer = GameManager.Instance.ItemSystem.CreateSingleItemContainer(this, desc);
         VisualImage = Resources.Load<Sprite>(desc.Image);
         IndexId = $"Item/{desc.Id}";
     }

@@ -23,8 +23,8 @@ public abstract class RObject
     private string[] indexKey;
 
     public string[] IndexKey
-    { 
-        get 
+    {
+        get
         {
             if (indexKey == null)
             {
@@ -36,13 +36,13 @@ public abstract class RObject
             }
 
             return indexKey;
-        } 
+        }
     }
 
     private Vector2 mapPosition;
 
-    public Vector2 MapPosition 
-    { 
+    public Vector2 MapPosition
+    {
         get => mapPosition;
         set
         {
@@ -58,8 +58,8 @@ public abstract class RObject
     public virtual Vector2Int Size { get => new Vector2Int(1, 1); }
 
     public Vector2Int MapTilePosition
-    { 
-        get => new Vector2Int((int)MapPosition.x, (int)MapPosition.y); 
+    {
+        get => new Vector2Int((int)MapPosition.x, (int)MapPosition.y);
         set => MapPosition = value + new Vector2(0.5f, 0.5f);
     }
 
@@ -96,7 +96,7 @@ public abstract class RObject
 
     public virtual void Update(float dt)
     {
-        
+
     }
 
     public abstract void VisualUpdate(float dt);
@@ -133,7 +133,7 @@ public abstract class RObject
                     NearNode<Vector2Int> nearNode = new NearNode<Vector2Int>
                     {
                         position = tile,
-                        distance = Vector2Int.Distance(tile, position) 
+                        distance = Vector2Int.Distance(tile, position)
                     };
                     queue.Enqueue(nearNode);
                 }
@@ -206,10 +206,20 @@ public abstract class RObject
         if (GameManager.Instance.WorldMap.RegionSystem.GetRegionFromTilePos(this.MapTilePosition, out LocalRegion region) == true)
         {
             LocalRegion = region;
-            if(isInit == false)
+            if (isInit == false)
                 GameManager.Instance.ObjectManager.OnObjectRefreshRegion(this, prevRegion);
         }
         else
             Debug.LogError($"ObjectID: {this.UniqueId}, 알맞은 Region 없음");
+    }
+
+    public static implicit operator bool(RObject rObj)
+    {
+        return rObj.HasUniqueId;
+    }
+
+    public virtual void OnGUI()
+    {
+
     }
 }

@@ -1,124 +1,138 @@
 using BT;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class AIReserveSystem : IObjectManagerListener
+public abstract class ReserverBase
 {
-    private SmartDictionary<Node, List<AIReserver>> reserverDict = new SmartDictionary<Node, List<AIReserver>>();
+    public bool IsComplete { get; private set; }
 
-    public void RegistReserver(AIReserver reserver)
+    public object Source { get; private set; }
+    public object Dest { get; private set; }
+
+    public event Action onDestroyBeforeComplete;
+    public event Action onDestroyAfterComplete;
+
+    public void OnDestroy()
     {
-        if (reserver.Node == null)
-            return;
-
-        if (reserverDict.TryGetValue(reserver.Node, out var list) == false)
-        {
-            list = new List<AIReserver>();
-            reserverDict.Add(reserver.Node, list);
-        }
-
-        list.Add(reserver);
+        if (IsComplete == true)
+            onDestroyAfterComplete?.Invoke();
+        else
+            onDestroyBeforeComplete?.Invoke();
     }
 
-    public void BreakReserver(AIReserver reserver)
+    public void Complete()
     {
-        reserverDict[reserver.Node].Remove(reserver);
+        IsComplete = true;
     }
 
-    public List<TAIReserver> GetAllReserverFromAI<TAIReserver>(Node node) where TAIReserver : AIReserver
+    public abstract void Destroy();
+}
+
+public abstract class ReserverBase<TSource, TDest> : ReserverBase
+{
+    public new TSource Source { get; private set; }
+    public new TDest Dest { get; private set; }
+
+    public ReserverBase(TSource Source, TDest Dest)
     {
-        List<TAIReserver> retVal = new List<TAIReserver>();
-        if (reserverDict.TryGetValue(node, out List<AIReserver> reserverList) == true)
-        {
-            foreach (var reserver in reserverList)
-            {
-                if (reserver is TAIReserver)
-                    retVal.Add(reserver as TAIReserver);
-            }
-        }
-
-        return retVal;
-    }
-
-    public List<TAIReserver> GetAllReserverFromTarget<TAIReserver>(RObject rObj) where TAIReserver : AIReserver
-    {
-        List<TAIReserver> retVal = new List<TAIReserver>();
-        foreach (var reserverList in reserverDict.Values)
-        {
-            foreach (var reserver in reserverList)
-            {
-                if (reserver is TAIReserver && reserver.Target == rObj)
-                    retVal.Add(reserver as TAIReserver);
-            }
-        }
-
-        return retVal;
-    }
-
-    public void BreakAllReserverFromNode(Node node)
-    {
-        foreach (var reserver in GetAllReserverFromAI<AIReserver>(node))
-        {
-            reserver.Break();
-        }
-    }
-
-    public void OnCreateObject(RObject rObject)
-    {
-    }
-
-    public void OnDestroyObject(RObject rObject)
-    {
-        HashSet<Node> cancelAIList = new HashSet<Node>();
-        foreach (var reserverList in reserverDict.Values)
-        {
-            foreach (var reserver in reserverList)
-            {
-                if (reserver.Target == rObject)
-                    cancelAIList.Add(reserver.Node);
-            }
-        }
-
-        foreach (var cancelNode in cancelAIList)
-        {
-            cancelNode.Cancel();
-        }
+        this.Source = Source;
+        this.Dest = Dest;
     }
 }
 
-public class AIReserver
+public abstract class ReserveSystemBase<TReserver, TSource, TDest> where TReserver : ReserverBase<TSource, TDest>
 {
-    public Node Node { get; private set; }
-    public RObject Target { get; private set; }
+    private SmartDictionary<TSource, List<TReserver>> sourceDict = new SmartDictionary<TSource, List<TReserver>>();
+    private SmartDictionary<TDest, List<TReserver>> destDict = new SmartDictionary<TDest, List<TReserver>>();
 
-    public void Break()
+    public void AddReserver(TReserver reserver)
     {
-        GameManager.Instance.AIReserveSystem.BreakReserver(this);
+        if (sourceDict.TryGetValue(reserver.Source, out var srclist) == false)
+            sourceDict.Add(reserver.Source, srclist = new List<TReserver>());
+        srclist.Add(reserver);
+
+        if (destDict.TryGetValue(reserver.Dest, out var dstlist) == false)
+            destDict.Add(reserver.Dest, dstlist = new List<TReserver>());
+        dstlist.Add(reserver);
     }
 
-    public AIReserver(Node node, RObject target)
+    public void RemoveReserver(TReserver reserver)
     {
-        Node = node;
-        Target = target;
+        if (sourceDict.TryGetValue(reserver.Source, out var srclist) == true)
+        {
+            srclist.Remove(reserver);
+            if (srclist.Count == 0)
+                sourceDict.Remove(reserver.Source);
+        }
+
+        if (destDict.TryGetValue(reserver.Dest, out var dstlist) == true)
+        {
+            dstlist.Remove(reserver);
+            if (dstlist.Count == 0)
+                destDict.Remove(reserver.Dest);
+        }
+
+        reserver.OnDestroy();
     }
-}
 
-public class ItemReserver : AIReserver
-{
-    public enum Type { haul, pickup };
-
-    public ItemContainer ItemContainer { get; private set; }
-
-    public Type ActionType { get; private set; }
-
-    public List<Item> ItemList { get; private set; }
-
-    public ItemReserver(Node node, ItemContainer itemContainer, Type type, List<Item> itemList) : base(node, itemContainer.ParentObject)
+    public List<TReserver> GetAllReserverFromSource(TSource source)
     {
-        ActionType = type;
-        ItemContainer = itemContainer;
-        ItemList = itemList;
+        if (sourceDict.TryGetValue(source, out List<TReserver> reserverList) == true)
+            return new List<TReserver>(reserverList);
+
+        return new List<TReserver>(0);
+    }
+
+    public List<TReserver> GetAllReserverFromDest(TDest dest)
+    {
+        if (destDict.TryGetValue(dest, out List<TReserver> reserverList) == true)
+            return new List<TReserver>(reserverList);
+
+        return new List<TReserver>(0);
+    }
+
+    public TReserver GetReserver(TSource source, TDest dest)
+    {
+        return GetAllReserverFromSource(source).Find(reserver => reserver.Dest.Equals(dest));
+    }
+
+    public void RemoveAllReserverFromSource(TSource source)
+    {
+        if (sourceDict.TryGetValue(source, out var srclist) == true)
+        {
+            foreach (var reserver in srclist)
+            {
+                if (destDict.TryGetValue(reserver.Dest, out var destList) == true)
+                {
+                    destList.Remove(reserver);
+                    if (destList.Count == 0)
+                        destDict.Remove(reserver.Dest);
+
+                    reserver.OnDestroy();
+                }
+            }
+            sourceDict.Remove(source);
+        }
+    }
+
+    public void RemoveAllReserverFromDest(TDest dest)
+    {
+        if (destDict.TryGetValue(dest, out var destlist) == true)
+        {
+            foreach (var reserver in destlist)
+            {
+                if (sourceDict.TryGetValue(reserver.Source, out var srclist) == true)
+                {
+                    srclist.Remove(reserver);
+                    if (srclist.Count == 0)
+                        sourceDict.Remove(reserver.Source);
+
+                    reserver.OnDestroy();
+                }
+            }
+            destDict.Remove(dest);
+        }
     }
 }

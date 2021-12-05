@@ -9,20 +9,19 @@ public class GameManager : SingletonBehaviour<GameManager>
     private ulong uniqueIdCounter;
 
     public WorldMap WorldMap { get; private set; }
-
     public ObjectManager ObjectManager { get; private set; }
+    public ItemSystem ItemSystem { get; private set; }
 
-    public AIReserveSystem AIReserveSystem { get; private set; }
 
     protected override void Start()
     {
         uniqueIdCounter = 1;
         WorldMap = new GameObject("WorldMap").AddComponent<WorldMap>();
         ObjectManager = new ObjectManager();
-        AIReserveSystem = new AIReserveSystem();
+        ItemSystem = new ItemSystem();
 
+        ObjectManager.AddListener(ItemSystem);
         WorldMap.RegionSystem.AddListener(ObjectManager);
-        ObjectManager.AddListener(AIReserveSystem);
 
         GOPoolManager.Instance.Init("RObj", new GameObject("RObject", typeof(RObjectBehaviour)));
 

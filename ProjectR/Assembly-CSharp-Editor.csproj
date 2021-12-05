@@ -309,9 +309,6 @@
     <Reference Include="Sirenix.OdinInspector.Attributes">
       <HintPath>Assets\Sirenix\Assemblies\Sirenix.OdinInspector.Attributes.dll</HintPath>
     </Reference>
-    <Reference Include="Sirenix.Serialization.AOTGenerated">
-      <HintPath>Assets\Sirenix\Assemblies\AOT\Sirenix.Serialization.AOTGenerated.dll</HintPath>
-    </Reference>
     <Reference Include="Google.Apis.Core">
       <HintPath>Assets\Plugins\GoogleApis\Google.Apis.Core.1.50.0\lib\net45\Google.Apis.Core.dll</HintPath>
     </Reference>
@@ -335,6 +332,9 @@
     </Reference>
     <Reference Include="Sirenix.Utilities.Editor">
       <HintPath>Assets\Sirenix\Assemblies\Sirenix.Utilities.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Sirenix.Serialization.AOTGenerated">
+      <HintPath>Assets\Sirenix\Assemblies\AOT\Sirenix.Serialization.AOTGenerated.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@1.0.6\net35\unity-custom\nunit.framework.dll</HintPath>

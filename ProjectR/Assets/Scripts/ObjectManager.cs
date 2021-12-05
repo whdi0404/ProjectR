@@ -20,12 +20,8 @@ public class ObjectManager : IRegionListener
     private List<RObject> destroyList = new List<RObject>();
     private List<RObject> iteratorList = new List<RObject>();
 
-    public ItemSystem ItemSystem { get; private set; }
-
     public ObjectManager()
     {
-        ItemSystem = new ItemSystem();
-        AddListener(ItemSystem);
     }
 
     public void AddListener(IObjectManagerListener listener)

@@ -22,7 +22,7 @@ public class Pawn : RObject, IRegionListener
     public Pawn()
     {
         AI = new PawnAI(this);
-        Inventory = GameManager.Instance.ObjectManager.ItemSystem.CreateInventory(this);
+        Inventory = GameManager.Instance.ItemSystem.CreateInventory(this);
 		Inventory.SetWeightLimit( 10.0f );
 		VisualImage = Resources.Load<Sprite>("PawnTextures/pawn");
 		IndexId = $"Pawn";//적,아군,동맹,동물 등 표시
@@ -136,6 +136,26 @@ public class Pawn : RObject, IRegionListener
                     }
                 }
             }
+        }
+    }
+
+    public override void OnGUI()
+    {
+        base.OnGUI();
+
+        Vector2 v = CameraManager.Instance.MainCamera.WorldToScreenPoint(this.MapPosition);
+        v.y = Screen.height - v.y;
+
+        foreach (var item in Inventory.GetItemList(true, true))
+        {            
+            GUI.Label(new Rect(v + new Vector2(0,0), new Vector2(200, 20))
+                , $"h,p: {item.Value}");
+        }
+
+        foreach (var item in Inventory.GetItemList(false, false))
+        {
+            GUI.Label(new Rect(v + new Vector2(0, 20), new Vector2(200, 20))
+                , $"current: {item.Value}");
         }
     }
 }

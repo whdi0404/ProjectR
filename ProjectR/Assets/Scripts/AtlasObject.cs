@@ -1,11 +1,9 @@
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using UnityEditor.Sprites;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -13,13 +11,7 @@ public class AtlasObject : SerializedScriptableObject
 {
     private struct AtlasProperty
     {
-        private static int size = 0;
-        public static int Size()
-        {
-            if (size == 0)
-                size = Marshal.SizeOf<AtlasProperty>();
-            return size;
-        }
+        public static readonly int Size = Marshal.SizeOf<AtlasProperty>();
 
         public int drawOrder;
         public Vector2 uvStart;
@@ -75,9 +67,10 @@ public class AtlasObject : SerializedScriptableObject
             prop.drawOrder = atlasInfo.DrawOrder;
 
             Sprite sprite = spriteAtlas.GetSprite(atlasInfo.Id);
-            Vector2[] uvs = SpriteUtility.GetSpriteUVs(sprite, true);
+
+            Vector2[] uvs = sprite.uv;// SpriteUtility.GetSpriteUVs(sprite, true);
             if (atlasTexture == null)
-                atlasTexture = SpriteUtility.GetSpriteTexture(sprite, true);
+                atlasTexture = sprite.texture;// SpriteUtility.GetSpriteTexture(sprite, true);
 
             Vector2 uvStart = new Vector2(float.MaxValue, float.MaxValue);
             Vector2 uvEnd = new Vector2(float.MinValue, float.MinValue);
@@ -96,7 +89,7 @@ public class AtlasObject : SerializedScriptableObject
             atlasProperties[index++] = prop;
         }
 
-        atlasPropertiesBuffer = new ComputeBuffer(textureCount, AtlasProperty.Size());
+        atlasPropertiesBuffer = new ComputeBuffer(textureCount, AtlasProperty.Size);
         atlasPropertiesBuffer.SetData(atlasProperties);
 
     }

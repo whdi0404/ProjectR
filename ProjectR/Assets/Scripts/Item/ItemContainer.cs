@@ -19,7 +19,7 @@ public abstract class ItemContainer
 	{
 		dropItem.Amount = Mathf.Min(dropItem.Amount, ItemDict[dropItem.ItemDesc]);
 
-		bool retVal = GameManager.Instance.ObjectManager.ItemSystem.DropItem(pos, dropItem, out dropFailed);
+		bool retVal = GameManager.Instance.ItemSystem.DropItem(pos, dropItem, out dropFailed);
 		dropItem.Amount -= dropFailed.Amount;
 		RemoveItems(dropItem, out Item removeFailed);
 
@@ -53,40 +53,37 @@ public abstract class ItemContainer
             Item dropItem = new Item(item.Key, item.Value);
             DropItems(ParentObject.MapTilePosition, dropItem, out Item dropFailed);
 		}
+		GameManager.Instance.ItemSystem.ReserveSystem.RemoveAllReserverFromSource(this);
+		GameManager.Instance.ItemSystem.ReserveSystem.RemoveAllReserverFromDest(this);
 	}
 
-	public SmartDictionary<ItemDataDescriptor, int> GetItemList(bool includeHaul, bool excludePickup)
+	public SmartDictionary<ItemDataDescriptor, int> GetItemList(bool excludeOut, bool includeIn)
 	{
 		SmartDictionary<ItemDataDescriptor, int> retVal = new SmartDictionary<ItemDataDescriptor, int>(ItemDict);
 
-		if (includeHaul == false && excludePickup == false)
-			return retVal;
+        ItemReserverSystem reserveSystem = GameManager.Instance.ItemSystem.ReserveSystem;
 
-		List<ItemReserver> itemReserverList = GameManager.Instance.AIReserveSystem.GetAllReserverFromTarget<ItemReserver>(ParentObject);
-		foreach (ItemReserver itemReserver in itemReserverList)
-		{
-			if (itemReserver.ItemContainer == this)
-			{
-				if (includeHaul == true && itemReserver.ActionType == ItemReserver.Type.haul)
-				{
-					foreach (var item in itemReserver.ItemList)
-					{
-						retVal[item.ItemDesc] += item.Amount;
-						Debug.Log(retVal[item.ItemDesc]);
-					}
-				}
-				if (excludePickup == true && itemReserver.ActionType == ItemReserver.Type.pickup)
-				{
-					foreach (var item in itemReserver.ItemList)
-					{
-						retVal[item.ItemDesc] -= item.Amount;
-						Debug.Log(retVal[item.ItemDesc]);
-					}
-				}
-			}
-		}
+		if (excludeOut == true)
+        {
+            List<ItemReserver> itemReserverList = reserveSystem.GetAllReserverFromSource(this);
+            foreach (ItemReserver itemReserver in itemReserverList)
+            {
+				var item = itemReserver.Item;
+                retVal[item.ItemDesc] -= item.Amount;
+            }
+        }
 
-		return retVal;
+        if (includeIn == true)
+        {
+            List<ItemReserver> itemReserverList = reserveSystem.GetAllReserverFromDest(this);
+            foreach (ItemReserver itemReserver in itemReserverList)
+            {
+				var item = itemReserver.Item;
+                retVal[item.ItemDesc] += item.Amount;
+            }
+        }
+
+        return retVal;
 	}
 }
 
@@ -103,12 +100,11 @@ public class SingleItemContainer : ItemContainer
 		}
 	}
 
-    public Item ReserveItem
+    public Item ItemExcludeOut
     {
-
         get
         {
-            var v = GetItemList(false, true).FirstOrDefault();
+			var v = GetItemList(true, false).FirstOrDefault();
             Item item = new Item() { ItemDesc = v.Key, Amount = v.Value };
 
             return item;
@@ -175,17 +171,17 @@ public class Inventory : ItemContainer
 		}
 	}
 
-	public float ReserveWeight
+	public float WeightIncludeIn
 	{
 		get
         {
-            return Item.GetWeights(GetItemList(true, false));
+            return Item.GetWeights(GetItemList(false, true));
         }
 	}
 
 	public float RemainWeight { get => WeightLimit == 0 ? float.MaxValue : WeightLimit - Weight; }
 
-	public float RemainReserveWeight { get => WeightLimit == 0 ? float.MaxValue : WeightLimit - ReserveWeight; }
+	public float RemainWeightIncludeIn { get => WeightLimit == 0 ? float.MaxValue : WeightLimit - WeightIncludeIn; }
 
 	public Inventory(RObject parentObject) : base(parentObject)
 	{
@@ -196,9 +192,9 @@ public class Inventory : ItemContainer
 		return itemDesc.Weight == 0 ? 10000 : Mathf.FloorToInt(RemainWeight / itemDesc.Weight);
 	}
 
-	public int EnableToAddReserveItemAmount(ItemDataDescriptor itemDesc)
+	public int EnableToAddIncludeInItemAmount(ItemDataDescriptor itemDesc)
 	{
-		return itemDesc.Weight == 0 ? 10000 : Mathf.FloorToInt(RemainReserveWeight / itemDesc.Weight);
+		return itemDesc.Weight == 0 ? 10000 : Mathf.FloorToInt(RemainWeightIncludeIn / itemDesc.Weight);
 	}
 
 	public void SetWeightLimit(float weightLimit)
@@ -211,7 +207,7 @@ public class Inventory : ItemContainer
 		foreach (var kv in ItemDict)
 		{
 			Item item = new Item(kv.Key, kv.Value);
-			GameManager.Instance.ObjectManager.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
+			GameManager.Instance.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
 		}
 	}
 
@@ -237,32 +233,26 @@ public class WorkHolder : ItemContainer
 		RequireItemList = new List<Item>(requireItemList);
 	}
 
-	public List<Item> GetRemainReqItemList()
+	public IEnumerable<Item> GetRemainReqItemList()
 	{
-		List<Item> reqItemList = new List<Item>();
-		foreach (var reqItem in reqItemList)
+		foreach (var reqItem in RequireItemList)
 		{
 			int remainAmount = reqItem.Amount - ItemDict[reqItem.ItemDesc];
 			if (remainAmount > 0)
-				reqItemList.Add(new Item() { ItemDesc = reqItem.ItemDesc, Amount = remainAmount });
+				yield return new Item() { ItemDesc = reqItem.ItemDesc, Amount = remainAmount };
 		}
-
-		return reqItemList;
 	}
 
-	public List<Item> GetReserveRemainReqItemList()
+	public IEnumerable<Item> GetReserveRemainReqItemList()
 	{
 		var reserveItemDict = GetItemList(true, true);
 
-		List<Item> reserveRequireItemList = new List<Item>();
 		foreach (var reqItem in RequireItemList)
 		{
 			int remainAmount = reqItem.Amount - reserveItemDict[reqItem.ItemDesc];
 			if (remainAmount > 0)
-				reserveRequireItemList.Add(new Item() { ItemDesc = reqItem.ItemDesc, Amount = remainAmount });
+				yield return new Item() { ItemDesc = reqItem.ItemDesc, Amount = remainAmount };
 		}
-
-		return reserveRequireItemList;
 	}
 
 	public override bool AddItems(Item addItem, out Item failedItem)
@@ -282,10 +272,11 @@ public class WorkHolder : ItemContainer
 		foreach (var kv in ItemDict)
 		{
 			Item item = new Item(kv.Key, kv.Value);
-			GameManager.Instance.ObjectManager.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
+			GameManager.Instance.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
 		}
 	}
 }
+
 public struct Item
 {
 	public ItemDataDescriptor ItemDesc;
