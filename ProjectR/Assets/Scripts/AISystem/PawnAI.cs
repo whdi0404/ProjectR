@@ -43,7 +43,7 @@ public class Haul : ActionTask<ItemReserver>
 
     public override IEnumerable<State> Run()
     {
-        if (reserver.Source.ParentObject != ParentAI.Pawn)
+        if (reserver.Source.ParentObject != Pawn)
         {
             yield return State.Failed;
         }
@@ -59,6 +59,39 @@ public class Haul : ActionTask<ItemReserver>
         }
 
         reserver.Source.MoveToOtherContainer(reserver.Dest, reserver.Item, out Item moveFailed);
+
+        yield return State.Complete;
+    }
+}
+
+public class Work : ActionTask<WorkReserver>
+{
+    public Work(WorkReserver reserver) : base(reserver)
+    {
+    }
+
+    public override IEnumerable<State> Run()
+    {
+        if (reserver.Source.AI.Pawn != Pawn || reserver.Dest.IsWorkable == false)
+        {
+            yield return State.Failed;
+        }
+
+        //Move
+        if (Pawn.SetMove(reserver.Dest.WorkPlace.MapTilePosition) == false)
+        {
+            yield return State.Failed;
+        }
+        while (Pawn.IsMoving == true)
+        {
+            yield return State.Running;
+        }
+
+        if (reserver.Dest.IsWorkable == false)
+            yield return State.Failed;//Complete,Fail이 의미가 있나?
+
+        while (reserver.Dest.Work(Pawn) == false)
+            yield return State.Running;
 
         yield return State.Complete;
     }

@@ -38,9 +38,6 @@ public class ObjectManager : IRegionListener
 
     public void OnRegionChange(List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions)
     {
-        foreach (var removedRegion in removedLocalRegions)
-            objects.Remove(removedRegion);
-
         foreach (var newLocalRegion in newLocalRegions)
             objects.Add(newLocalRegion, new HierarchyDictionary<string, RObject>());
 
@@ -52,7 +49,9 @@ public class ObjectManager : IRegionListener
                     obj.Value.RefreshRegion();
             }
         }
-            
+
+        foreach (var removedRegion in removedLocalRegions)
+            objects.Remove(removedRegion);
     }
 
     private HierarchyDictionary<string, RObject> GetOrMakeObjectDict(LocalRegion region)

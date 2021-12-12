@@ -34,6 +34,10 @@ public abstract class ItemContainer
 
 		return removeFailed.Amount <= 0;
 	}
+	public void RemoveAllItems()
+	{
+		ItemDict.Clear();
+	}
 
 	public bool MoveToOtherContainer(ItemContainer other, Item moveItem, out Item moveFailed)
 	{

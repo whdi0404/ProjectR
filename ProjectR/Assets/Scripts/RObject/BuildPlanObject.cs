@@ -15,7 +15,7 @@ public class BuildPlanObject : WorkPlaceObject
     {
         IndexId = "Work/Build";
         this.planningDesc = planningDesc;
-        buildWork = new BuildWork(this, planningDesc);
+        buildWork = GameManager.Instance.WorkSystem.CreateBuildWork(this, planningDesc);
 
         if (planningDesc.Structure != null)
         {

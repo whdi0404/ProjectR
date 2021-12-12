@@ -11,6 +11,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     public WorldMap WorldMap { get; private set; }
     public ObjectManager ObjectManager { get; private set; }
     public ItemSystem ItemSystem { get; private set; }
+    public WorkSystem WorkSystem { get; private set; }
 
 
     protected override void Start()
@@ -19,8 +20,10 @@ public class GameManager : SingletonBehaviour<GameManager>
         WorldMap = new GameObject("WorldMap").AddComponent<WorldMap>();
         ObjectManager = new ObjectManager();
         ItemSystem = new ItemSystem();
+        WorkSystem = new WorkSystem();
 
         ObjectManager.AddListener(ItemSystem);
+        ObjectManager.AddListener(WorkSystem);
         WorldMap.RegionSystem.AddListener(ObjectManager);
 
         GOPoolManager.Instance.Init("RObj", new GameObject("RObject", typeof(RObjectBehaviour)));

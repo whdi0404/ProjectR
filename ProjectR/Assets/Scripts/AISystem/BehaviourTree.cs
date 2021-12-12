@@ -149,26 +149,39 @@ namespace BT
         //이것들을 어디다가 뺄지 생각해보자.
         public void EvaluateAI()
         {
-            TakeWork();
-            EvaluateCarryItem("Build");
+            if (DoAction() == false)
+            {
+                EvaluateWork("Build");
+                EvaluateCarryItem("Build");
+            }
         }
 
-        public void TakeWork()
+        public bool DoAction()
         {
             var itemReserveSystem = GameManager.Instance.ItemSystem.ReserveSystem;
+            var workReserveSystem = GameManager.Instance.WorkSystem.ReserveSystem;
             var pickupList = itemReserveSystem.GetAllReserverFromDest(Pawn.Inventory);
             foreach (var reserver in pickupList)
             {
                 AddChild(new Pickup(reserver));
-                return;
+                return true;
             }
 
             var haulList = itemReserveSystem.GetAllReserverFromSource(Pawn.Inventory);
             foreach (var reserver in haulList)
             {
                 AddChild(new Haul(reserver));
-                return;
+                return true;
             }
+
+            var workList = workReserveSystem.GetAllReserverFromSource(Pawn);
+            foreach (var reserver in workList)
+            {
+                AddChild(new Work(reserver));
+                return true;
+            }
+
+            return false;
         }
 
         public void EvaluateCarryItem(string workid)
@@ -182,6 +195,9 @@ namespace BT
             foreach (var workObj in objManager.GetNearestObjectFromIndexId<WorkPlaceObject>($"Work/{workid}", Pawn.MapTilePosition))
             {
                 var work = workObj.GetWork(Pawn);
+                if (work == null)
+                    continue;
+
                 foreach (Item req in work.WorkHolder.GetReserveRemainReqItemList())
                 {
                     Item reqItem = req;
@@ -212,6 +228,22 @@ namespace BT
                         if (Pawn.Inventory.EnableToAddIncludeInItemAmount(reqItem.ItemDesc) == 0)
                             break;
                     }
+                }
+            }
+        }
+
+        public void EvaluateWork(string workid)
+        {
+            var objManager = GameManager.Instance.ObjectManager;
+            var workSystem = GameManager.Instance.WorkSystem;
+
+            foreach (var workObj in objManager.GetNearestObjectFromIndexId<WorkPlaceObject>($"Work/{workid}", Pawn.MapTilePosition))
+            {
+                var work = workObj.GetWork(Pawn);
+                if (work != null && workSystem.ReserveSystem.GetAllReserverFromDest(work).Count == 0)
+                {
+                    workSystem.ReserveSystem.AddReserver(new WorkReserver(Pawn, work));
+                    return;
                 }
             }
         }

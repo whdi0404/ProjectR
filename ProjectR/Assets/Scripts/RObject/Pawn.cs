@@ -51,7 +51,8 @@ public class Pawn : RObject, IRegionListener
     public override void Destroy()
     {
         base.Destroy();
-	}
+        GameManager.Instance.WorkSystem.ReserveSystem.RemoveAllReserverFromSource(this);
+    }
 
     public bool SetMove(Vector2Int destPos)
     {

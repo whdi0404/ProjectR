@@ -49,6 +49,7 @@ public abstract class WorkBase
         if (RemainWorkload <= 0)
         {
             Complete();
+            WorkHolder.RemoveAllItems();
             WorkPlace.OnCompleteWork(this);
             return true;
         }
@@ -61,6 +62,7 @@ public abstract class WorkBase
     public virtual void Cancel()
     {
         GameManager.Instance.ItemSystem.DestroyContainer(WorkHolder);
+        GameManager.Instance.WorkSystem.ReserveSystem.RemoveAllReserverFromDest(this);
     }
 }
 

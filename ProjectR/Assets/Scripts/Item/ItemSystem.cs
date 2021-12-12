@@ -23,7 +23,6 @@ public class ItemReserver : ReserverBase<ItemContainer, ItemContainer>
 
 public partial class ItemSystem : IObjectManagerListener
 {
-
 	private SmartDictionary<RObject, List<ItemContainer>> containierDict = new SmartDictionary<RObject, List<ItemContainer>>();
 
 	public ItemReserverSystem ReserveSystem { get; private set; }
