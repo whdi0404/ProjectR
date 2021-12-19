@@ -16,45 +16,57 @@ MonoBehaviour:
   deleteDllAfterBuilds: 1
   AutomateForAllAOTPlatforms: 1
   automateForPlatforms: 0900000014000000
-  lastScan: 637224234334768568
+  lastScan: 637755651090291995
   supportSerializedTypes:
   - TypeName: UnityEngine.Vector2Int, UnityEngine.CoreModule
     IsCustom: 1
     Emit: 1
-  - TypeName: Table.AdventureDescriptor, Assembly-CSharp
+  - TypeName: AtlasInfoDescriptor, Assembly-CSharp
     IsCustom: 0
     Emit: 1
-  - TypeName: Game.Reward.CostType, Assembly-CSharp
+  - TypeName: System.Boolean, mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Table.AdventureDescriptor,
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[AtlasInfoDescriptor,
       Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Table.DollDescriptor,
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[FoodDataDescriptor,
       Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Table.MachineDescriptor,
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[System.Collections.Generic.List`1[[System.String,
+      mscorlib]], mscorlib]], mscorlib
+    IsCustom: 0
+    Emit: 1
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[MaterialDataDescriptor,
       Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Table.NpcDescriptor,
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[StructurePlanningDescriptor,
       Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Game.Reward.RewardPoolDescriptor,
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[TestChildDescriptor,
       Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Table.ShopDescriptor,
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[TestDescriptor,
       Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: Table.DollDescriptor, Assembly-CSharp
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[WeaponDataDescriptor,
+      Assembly-CSharp]], mscorlib
+    IsCustom: 0
+    Emit: 1
+  - TypeName: System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[WorkBenchDataDescriptor,
+      Assembly-CSharp]], mscorlib
     IsCustom: 0
     Emit: 1
   - TypeName: System.Single, mscorlib
+    IsCustom: 0
+    Emit: 1
+  - TypeName: FoodDataDescriptor, Assembly-CSharp
     IsCustom: 0
     Emit: 1
   - TypeName: System.Collections.Generic.GenericEqualityComparer`1[[System.String,
@@ -68,34 +80,33 @@ MonoBehaviour:
   - TypeName: System.Int32, mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Collections.Generic.List`1[[Game.Reward.RewardEntityDescriptor,
-      Assembly-CSharp]], mscorlib
+  - TypeName: System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     IsCustom: 0
     Emit: 1
-  - TypeName: System.Int64, mscorlib
+  - TypeName: MaterialDataDescriptor, Assembly-CSharp
     IsCustom: 0
     Emit: 1
-  - TypeName: Table.MachineDescriptor, Assembly-CSharp
-    IsCustom: 0
-    Emit: 1
-  - TypeName: Table.NpcController, Assembly-CSharp
-    IsCustom: 0
-    Emit: 1
-  - TypeName: Table.NpcDescriptor, Assembly-CSharp
-    IsCustom: 0
-    Emit: 1
-  - TypeName: Game.Reward.RewardEntityDescriptor, Assembly-CSharp
-    IsCustom: 0
-    Emit: 1
-  - TypeName: Game.Reward.RewardPoolDescriptor, Assembly-CSharp
-    IsCustom: 0
-    Emit: 1
-  - TypeName: Game.Reward.RewardType, Assembly-CSharp
-    IsCustom: 0
-    Emit: 1
-  - TypeName: Table.ShopDescriptor, Assembly-CSharp
+  - TypeName: UnityEngine.U2D.SpriteAtlas, UnityEngine.CoreModule
     IsCustom: 0
     Emit: 1
   - TypeName: System.String, mscorlib
+    IsCustom: 0
+    Emit: 1
+  - TypeName: StructurePlanningDescriptor, Assembly-CSharp
+    IsCustom: 0
+    Emit: 1
+  - TypeName: TestChildDescriptor, Assembly-CSharp
+    IsCustom: 0
+    Emit: 1
+  - TypeName: TestDescriptor, Assembly-CSharp
+    IsCustom: 0
+    Emit: 1
+  - TypeName: UnityEngine.Vector2Int, UnityEngine.CoreModule
+    IsCustom: 0
+    Emit: 1
+  - TypeName: WeaponDataDescriptor, Assembly-CSharp
+    IsCustom: 0
+    Emit: 1
+  - TypeName: WorkBenchDataDescriptor, Assembly-CSharp
     IsCustom: 0
     Emit: 1
