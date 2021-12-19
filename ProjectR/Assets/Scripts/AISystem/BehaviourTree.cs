@@ -151,8 +151,10 @@ namespace BT
         {
             if (DoAction() == false)
             {
-                EvaluateWork("Build");
-                EvaluateCarryItem("Build");
+                if (EvaluateWork("Build") == true)
+                    return;
+                if (EvaluateCarryItem("Build") == true)
+                    return;
             }
         }
 
@@ -160,6 +162,7 @@ namespace BT
         {
             var itemReserveSystem = GameManager.Instance.ItemSystem.ReserveSystem;
             var workReserveSystem = GameManager.Instance.WorkSystem.ReserveSystem;
+
             var pickupList = itemReserveSystem.GetAllReserverFromDest(Pawn.Inventory);
             foreach (var reserver in pickupList)
             {
@@ -184,13 +187,15 @@ namespace BT
             return false;
         }
 
-        public void EvaluateCarryItem(string workid)
+        public bool EvaluateCarryItem(string workid)
         {
             var objManager = GameManager.Instance.ObjectManager;
             var itemSystem = GameManager.Instance.ItemSystem;
 
+            bool isSuccess = false;
+
             if (Pawn.Inventory.RemainWeightIncludeIn == 0)
-                return;
+                return false;
 
             foreach (var workObj in objManager.GetNearestObjectFromIndexId<WorkPlaceObject>($"Work/{workid}", Pawn.MapTilePosition))
             {
@@ -213,7 +218,7 @@ namespace BT
 
                         carriableAmount = Mathf.Min(Mathf.Min(carriableAmount, itemAmount), reqItem.Amount);
 
-
+                        isSuccess = true;
                         //pickup reserve
                         itemSystem.ReserveSystem.AddReserver(new ItemReserver(itemObj.ItemContainer, Pawn.Inventory, new Item(reqItem.ItemDesc, carriableAmount)));
 
@@ -230,9 +235,11 @@ namespace BT
                     }
                 }
             }
+
+            return isSuccess;
         }
 
-        public void EvaluateWork(string workid)
+        public bool EvaluateWork(string workid)
         {
             var objManager = GameManager.Instance.ObjectManager;
             var workSystem = GameManager.Instance.WorkSystem;
@@ -243,9 +250,10 @@ namespace BT
                 if (work != null && workSystem.ReserveSystem.GetAllReserverFromDest(work).Count == 0)
                 {
                     workSystem.ReserveSystem.AddReserver(new WorkReserver(Pawn, work));
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         protected override void OnCancelChild(AINode node)
@@ -253,6 +261,7 @@ namespace BT
             cancelRunningState = children.Count > 0 && node == children[0];
             base.OnCancelChild(node);
         }
+
         protected override void OnCompleteChild(AINode node)
         {
             base.OnCompleteChild(node);
