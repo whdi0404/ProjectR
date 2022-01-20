@@ -71,20 +71,6 @@ public class InputManager : SingletonBehaviour<InputManager>
                 OnLeftMouseButtonUp(pickObj);
         }
 
-        if (Input.GetMouseButtonDown(1) == true)
-        {
-            PickObject pickObj = Pick(CurrentMouseWorldPosition);
-
-            foreach (var selectedObject in selector.SelectedObjectList)
-            {
-                Pawn pawn = selectedObject as Pawn;
-                if (pawn != null)
-                {
-                    pawn.AI.Reset();
-                }
-            }
-        }
-
         //TestCode
         if (Input.GetKey(KeyCode.Escape) == true)
         {

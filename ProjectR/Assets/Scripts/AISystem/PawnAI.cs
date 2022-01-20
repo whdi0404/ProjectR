@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using BT;
 using System.Linq;
 using System;
 using System.Diagnostics;
@@ -12,26 +11,26 @@ public class Pickup : ActionTask<ItemReserver>
     {
     }
 
-    public override IEnumerable<State> Run()
+    public override IEnumerable<AIState> Run()
     {
         if (reserver.Dest.ParentObject != ParentAI.Pawn)
         {
-            yield return State.Failed;
+            yield return AIState.Failed;
         }
 
         //Move
         if (Pawn.SetMove(reserver.Source.ParentObject.MapTilePosition) == false)
         {
-            yield return State.Failed;
+            yield return AIState.Failed;
         }
         while (Pawn.IsMoving == true)
         {
-            yield return State.Running;
+            yield return AIState.Running;
         }
 
         reserver.Source.MoveToOtherContainer(reserver.Dest, reserver.Item, out Item moveFailed);
 
-        yield return State.Complete;
+        yield return AIState.Complete;
     }
 }
 
@@ -41,26 +40,26 @@ public class Haul : ActionTask<ItemReserver>
     {
     }
 
-    public override IEnumerable<State> Run()
+    public override IEnumerable<AIState> Run()
     {
         if (reserver.Source.ParentObject != Pawn)
         {
-            yield return State.Failed;
+            yield return AIState.Failed;
         }
 
         //Move
         if (Pawn.SetMove(reserver.Dest.ParentObject.MapTilePosition) == false)
         {
-            yield return State.Failed;
+            yield return AIState.Failed;
         }
         while (Pawn.IsMoving == true)
         {
-            yield return State.Running;
+            yield return AIState.Running;
         }
 
         reserver.Source.MoveToOtherContainer(reserver.Dest, reserver.Item, out Item moveFailed);
 
-        yield return State.Complete;
+        yield return AIState.Complete;
     }
 }
 
@@ -70,30 +69,30 @@ public class Work : ActionTask<WorkReserver>
     {
     }
 
-    public override IEnumerable<State> Run()
+    public override IEnumerable<AIState> Run()
     {
         if (reserver.Source.AI.Pawn != Pawn || reserver.Dest.IsWorkable == false)
         {
-            yield return State.Failed;
+            yield return AIState.Failed;
         }
 
         //Move
         if (Pawn.SetMove(reserver.Dest.WorkPlace.MapTilePosition) == false)
         {
-            yield return State.Failed;
+            yield return AIState.Failed;
         }
         while (Pawn.IsMoving == true)
         {
-            yield return State.Running;
+            yield return AIState.Running;
         }
 
         if (reserver.Dest.IsWorkable == false)
-            yield return State.Failed;//Complete,Fail이 의미가 있나?
+            yield return AIState.Failed;//Complete,Fail이 의미가 있나?
 
         while (reserver.Dest.Work(Pawn) == false)
-            yield return State.Running;
+            yield return AIState.Running;
 
-        yield return State.Complete;
+        yield return AIState.Complete;
     }
 }
 
@@ -101,7 +100,7 @@ public class PawnAI
 {
     public Pawn Pawn { get; private set; }
     private AIRoot aiRoot;
-    private IEnumerator<State> runningState;
+    private IEnumerator<AIState> runningState;
 
     private bool isDirectControl;
 
@@ -132,7 +131,7 @@ public class PawnAI
 
     public void Reset()
     {
-        runningState = null;
+        runningState.Reset();// = null;
     }
 
     public void AddAINode(AINode node)

@@ -37,7 +37,6 @@ public class WorldMapRenderer
 
 		UpdateTileGroup(true);
 	}
-	private Vector2Int prevCenterGroupPos;
 
 	public void Update()
     {
@@ -67,7 +66,8 @@ public class WorldMapRenderer
 
         tileGroups[ix, iy].SetTile(desc.Id, fragmentTile.x, fragmentTile.y);
         tileGroups[ix, iy].Apply();
-    }
+	}
+	private Vector2Int prevCenterGroupPos;
 
 	private void UpdateTileGroup(bool first = false)
 	{

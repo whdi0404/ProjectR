@@ -52,11 +52,13 @@ public abstract class ItemContainer
 
 	public virtual void OnDestroy()
 	{
-		foreach (var item in ItemDict)
-        {
-            Item dropItem = new Item(item.Key, item.Value);
-            DropItems(ParentObject.MapTilePosition, dropItem, out Item dropFailed);
+		foreach (var kv in ItemDict)
+		{
+			Item item = new Item(kv.Key, kv.Value);
+			GameManager.Instance.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
 		}
+		ItemDict.Clear();
+
 		GameManager.Instance.ItemSystem.ReserveSystem.RemoveAllReserverFromSource(this);
 		GameManager.Instance.ItemSystem.ReserveSystem.RemoveAllReserverFromDest(this);
 	}
@@ -159,6 +161,8 @@ public class SingleItemContainer : ItemContainer
 	public override void OnDestroy()
 	{
 		ItemDict.Clear();
+		GameManager.Instance.ItemSystem.ReserveSystem.RemoveAllReserverFromSource(this);
+		GameManager.Instance.ItemSystem.ReserveSystem.RemoveAllReserverFromDest(this);
 		Debug.Log($"아이템 삭제됨(Pos:{ParentObject.MapTilePosition}, Id:{Item.ItemDesc}, Amount:{Item.Amount})");
 	}
 }
@@ -204,15 +208,6 @@ public class Inventory : ItemContainer
 	public void SetWeightLimit(float weightLimit)
 	{
 		WeightLimit = weightLimit;
-	}
-
-	public override void OnDestroy()
-	{
-		foreach (var kv in ItemDict)
-		{
-			Item item = new Item(kv.Key, kv.Value);
-			GameManager.Instance.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
-		}
 	}
 
 	public override bool AddItems(Item addItem, out Item failedItem)
@@ -269,15 +264,6 @@ public class WorkHolder : ItemContainer
 
 		ItemDict[addItem.ItemDesc] += addAmount;
 		return failedItem.Amount <= 0;
-	}
-
-	public override void OnDestroy()
-	{
-		foreach (var kv in ItemDict)
-		{
-			Item item = new Item(kv.Key, kv.Value);
-			GameManager.Instance.ItemSystem.DropItem(ParentObject.MapTilePosition, item, out Item dropFailed);
-		}
 	}
 }
 
