@@ -6,32 +6,32 @@ using UnityEngine;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uActiveBinding. Bind GameObject.activeSelf
-    /// </summary>
+	/// <summary>
+	/// M4uActiveBinding. Bind GameObject.activeSelf
+	/// </summary>
 	[AddComponentMenu("M4u/ActiveBinding")]
 	public class M4uActiveBinding : M4uBindingBool
 	{
-		GameObject ui;
+		private GameObject ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = gameObject;
-            OnChange();
-        }
+			ui = gameObject;
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            ui.SetActive(IsCheck());
-        }
+			ui.SetActive(IsCheck());
+		}
 
-        public override string ToString()
-        {
-            return "GameObject.active=" + base.ToString();
-        }
+		public override string ToString()
+		{
+			return "GameObject.active=" + base.ToString();
+		}
 	}
 }

@@ -2,52 +2,52 @@
 // MVVM 4 uGUI
 // © 2015 yedo-factory
 //----------------------------------------------
-using UnityEngine;
 using System.Reflection;
+using UnityEngine;
 
 namespace M4u
 {
-    /// <summary>
+	/// <summary>
 	/// M4uSpecialBinding. Bind Anything
-    /// </summary>
+	/// </summary>
 	[AddComponentMenu("M4u/SpecialBinding")]
-    public class M4uSpecialBinding : M4uBindingSingle
-    {
-        public string TargetPath;
+	public class M4uSpecialBinding : M4uBindingSingle
+	{
+		public string TargetPath;
 
-        object obj;
-        PropertyInfo pi;
-        FieldInfo fi;
+		private object obj;
+		private PropertyInfo pi;
+		private FieldInfo fi;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            if(!string.IsNullOrEmpty(TargetPath))
-            {
-                string[] names = TargetPath.Split('.');
-                object parent  = GetComponent(names[0]);
-                object value   = null;
-                for(int i = 1; i < names.Length; i++)
-                {
-                    var isLast = (i == names.Length - 1);
-                    var name   = names[i];
-                    ParseMember(isLast, ref name, ref parent, ref value, ref obj, ref pi, ref fi);
-                }
-            }
-            OnChange();
-        }
+			if (!string.IsNullOrEmpty(TargetPath))
+			{
+				string[] names = TargetPath.Split('.');
+				object parent = GetComponent(names[0]);
+				object value = null;
+				for (int i = 1; i < names.Length; i++)
+				{
+					var isLast = (i == names.Length - 1);
+					var name = names[i];
+					ParseMember(isLast, ref name, ref parent, ref value, ref obj, ref pi, ref fi);
+				}
+			}
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            SetMember(obj, pi, fi, Values[0]);
-        }
+			SetMember(obj, pi, fi, Values[0]);
+		}
 
-        public override string ToString()
-        {
-            return TargetPath + "=" + GetBindStr(Path);
-        }
-    }
+		public override string ToString()
+		{
+			return TargetPath + "=" + GetBindStr(Path);
+		}
+	}
 }

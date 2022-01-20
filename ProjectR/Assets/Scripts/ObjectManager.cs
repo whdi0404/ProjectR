@@ -1,261 +1,259 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-
 
 public interface IObjectManagerListener
 {
-    public void OnCreateObject( RObject rObject );
-    public void OnDestroyObject( RObject rObject );
+	public void OnCreateObject(RObject rObject);
+
+	public void OnDestroyObject(RObject rObject);
 }
 
 public class ObjectManager : IRegionListener
 {
-    private event Action<RObject> onCreateObjectEvent;
-    private event Action<RObject> onDestroyObjectEvent;
+	private event Action<RObject> onCreateObjectEvent;
 
-    private SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>> objects = new SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>>();
-    private List<RObject> destroyList = new List<RObject>();
-    private List<RObject> iteratorList = new List<RObject>();
+	private event Action<RObject> onDestroyObjectEvent;
 
-    public ObjectManager()
-    {
-    }
+	private SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>> objects = new SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>>();
+	private List<RObject> destroyList = new List<RObject>();
+	private List<RObject> iteratorList = new List<RObject>();
 
-    public void AddListener(IObjectManagerListener listener)
-    {
-        onCreateObjectEvent += listener.OnCreateObject;
-        onDestroyObjectEvent += listener.OnDestroyObject;
-    }
+	public ObjectManager()
+	{
+	}
 
-    public void RemoveListener(IObjectManagerListener listener)
-    {
-        onCreateObjectEvent -= listener.OnCreateObject;
-        onDestroyObjectEvent -= listener.OnDestroyObject;
-    }
+	public void AddListener(IObjectManagerListener listener)
+	{
+		onCreateObjectEvent += listener.OnCreateObject;
+		onDestroyObjectEvent += listener.OnDestroyObject;
+	}
 
-    public void OnRegionChange(List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions)
-    {
-        foreach (var newLocalRegion in newLocalRegions)
-            objects.Add(newLocalRegion, new HierarchyDictionary<string, RObject>());
+	public void RemoveListener(IObjectManagerListener listener)
+	{
+		onCreateObjectEvent -= listener.OnCreateObject;
+		onDestroyObjectEvent -= listener.OnDestroyObject;
+	}
 
-        foreach (var removedRegion in removedLocalRegions)
-        {
-            if (objects.TryGetValue(removedRegion, out var regionObjects) == true)
-            {
-                foreach (var obj in regionObjects)
-                    obj.Value.RefreshRegion();
-            }
-        }
+	public void OnRegionChange(List<LocalRegion> removedLocalRegions, List<LocalRegion> newLocalRegions)
+	{
+		foreach (var newLocalRegion in newLocalRegions)
+			objects.Add(newLocalRegion, new HierarchyDictionary<string, RObject>());
 
-        foreach (var removedRegion in removedLocalRegions)
-            objects.Remove(removedRegion);
-    }
+		foreach (var removedRegion in removedLocalRegions)
+		{
+			if (objects.TryGetValue(removedRegion, out var regionObjects) == true)
+			{
+				foreach (var obj in regionObjects)
+					obj.Value.RefreshRegion();
+			}
+		}
 
-    private HierarchyDictionary<string, RObject> GetOrMakeObjectDict(LocalRegion region)
-    {
-        if (objects.TryGetValue(region, out var objDict) == false)
-        {
-            objDict = new HierarchyDictionary<string, RObject>();
-            objects.Add(region, objDict);
-        }
+		foreach (var removedRegion in removedLocalRegions)
+			objects.Remove(removedRegion);
+	}
 
-        return objDict;
-    }
+	private HierarchyDictionary<string, RObject> GetOrMakeObjectDict(LocalRegion region)
+	{
+		if (objects.TryGetValue(region, out var objDict) == false)
+		{
+			objDict = new HierarchyDictionary<string, RObject>();
+			objects.Add(region, objDict);
+		}
 
-    public class RObjectUIDComparer : IComparer<RObject>
-    {
-        public static readonly RObjectUIDComparer Comparer = new RObjectUIDComparer();
+		return objDict;
+	}
 
-        public int Compare(RObject x, RObject y)
-        {
-            return x.UniqueId.CompareTo(y.UniqueId);
-        }
-    }
+	public class RObjectUIDComparer : IComparer<RObject>
+	{
+		public static readonly RObjectUIDComparer Comparer = new RObjectUIDComparer();
 
-    public void OnObjectRefreshRegion(RObject rObject, LocalRegion prevRegion)
-    {
-        if (prevRegion == rObject.LocalRegion)
-            return;
+		public int Compare(RObject x, RObject y)
+		{
+			return x.UniqueId.CompareTo(y.UniqueId);
+		}
+	}
 
-        if (prevRegion != null)
-            objects[prevRegion]?.Remove(rObject.IndexKey);
-        GetOrMakeObjectDict(rObject.LocalRegion).Add(rObject.IndexKey, rObject);
-    }
+	public void OnObjectRefreshRegion(RObject rObject, LocalRegion prevRegion)
+	{
+		if (prevRegion == rObject.LocalRegion)
+			return;
 
-    public void CreateObject(RObject rObject)
-    {
-        rObject.Init();
-        GetOrMakeObjectDict(rObject.LocalRegion).Add(rObject.IndexKey, rObject);
-        onCreateObjectEvent?.Invoke(rObject);
-        iteratorList.Add(rObject);
-    }
+		if (prevRegion != null)
+			objects[prevRegion]?.Remove(rObject.IndexKey);
+		GetOrMakeObjectDict(rObject.LocalRegion).Add(rObject.IndexKey, rObject);
+	}
 
-    public void DestroyObject(RObject rObject)
-    {
-        if(rObject.HasUniqueId == true)
-            destroyList.Add(rObject);
-    }
+	public void CreateObject(RObject rObject)
+	{
+		rObject.Init();
+		GetOrMakeObjectDict(rObject.LocalRegion).Add(rObject.IndexKey, rObject);
+		onCreateObjectEvent?.Invoke(rObject);
+		iteratorList.Add(rObject);
+	}
 
-    private void DestroyAllInList()
-    {
-        foreach (var rObj in destroyList)
-        {
-            if (rObj.HasUniqueId == false)
-                Debug.LogWarning("uid없는 오브젝트 삭제");
+	public void DestroyObject(RObject rObject)
+	{
+		if (rObject.HasUniqueId == true)
+			destroyList.Add(rObject);
+	}
 
-            if (objects[rObj.LocalRegion]?.Remove(rObj.IndexKey) == true)
-            {
-                int idx = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
-                iteratorList.RemoveAt(idx);
-                rObj.Destroy();
-                onDestroyObjectEvent?.Invoke(rObj);
-            }
-            else
-            {
-                Debug.LogWarning($"오브젝트 삭제 실패(uid: {rObj.UniqueId}");
-            }
-        }
+	private void DestroyAllInList()
+	{
+		foreach (var rObj in destroyList)
+		{
+			if (rObj.HasUniqueId == false)
+				Debug.LogWarning("uid없는 오브젝트 삭제");
 
-        destroyList.Clear();
-    }
+			if (objects[rObj.LocalRegion]?.Remove(rObj.IndexKey) == true)
+			{
+				int idx = iteratorList.BinarySearch(rObj, RObjectUIDComparer.Comparer);
+				iteratorList.RemoveAt(idx);
+				rObj.Destroy();
+				onDestroyObjectEvent?.Invoke(rObj);
+			}
+			else
+			{
+				Debug.LogWarning($"오브젝트 삭제 실패(uid: {rObj.UniqueId}");
+			}
+		}
 
-    public SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>> GetAllObjects()
-    {
-        return objects;
-    }
+		destroyList.Clear();
+	}
 
-    public List<RObject> GetObjectsFromRegion(LocalRegion region)
-    {
-        List<RObject> selectedObjects = new List<RObject>();
-        foreach (var obj in objects[region])
-            selectedObjects.Add(obj.Value);
+	public SmartDictionary<LocalRegion, HierarchyDictionary<string, RObject>> GetAllObjects()
+	{
+		return objects;
+	}
 
-        return selectedObjects;
-    }
+	public List<RObject> GetObjectsFromRegion(LocalRegion region)
+	{
+		List<RObject> selectedObjects = new List<RObject>();
+		foreach (var obj in objects[region])
+			selectedObjects.Add(obj.Value);
 
-    public SmartDictionary<LocalRegion, List<RObject>> GetObjectsFromIndexId(string indexId)
-    {
-        SmartDictionary<LocalRegion, List<RObject>> selectedObjects = new SmartDictionary<LocalRegion, List<RObject>>();
-        foreach (var regionObjs in objects)
-        {
-            if (regionObjs.Value.TryGetValues(indexId.Split('/'), out var objList) == true)
-                selectedObjects.Add(regionObjs.Key, objList);
-        }
+		return selectedObjects;
+	}
 
-        return selectedObjects;
-    }
+	public SmartDictionary<LocalRegion, List<RObject>> GetObjectsFromIndexId(string indexId)
+	{
+		SmartDictionary<LocalRegion, List<RObject>> selectedObjects = new SmartDictionary<LocalRegion, List<RObject>>();
+		foreach (var regionObjs in objects)
+		{
+			if (regionObjs.Value.TryGetValues(indexId.Split('/'), out var objList) == true)
+				selectedObjects.Add(regionObjs.Key, objList);
+		}
 
-    public List<RObject> GetObjects(LocalRegion region, string indexId)
-    {
-        if (objects.TryGetValue(region, out var regionObjs) == true)
-        {
-            regionObjs.TryGetValues(indexId.Split('/'), out List<RObject> objList);
-            return objList;
-        }
+		return selectedObjects;
+	}
 
-        return new List<RObject>();
-    }
+	public List<RObject> GetObjects(LocalRegion region, string indexId)
+	{
+		if (objects.TryGetValue(region, out var regionObjs) == true)
+		{
+			regionObjs.TryGetValues(indexId.Split('/'), out List<RObject> objList);
+			return objList;
+		}
 
-    public RObject GetObjectFromUniqueId(ulong uniqueId)
-    {
-        foreach (var regionObjects in objects.Values)
-        {
-            if (regionObjects.TryGetLeafValue(uniqueId.ToString(), out RObject rObj) == true)
-                return rObj;
-        }
+		return new List<RObject>();
+	}
 
-        return null;
-    }
+	public RObject GetObjectFromUniqueId(ulong uniqueId)
+	{
+		foreach (var regionObjects in objects.Values)
+		{
+			if (regionObjects.TryGetLeafValue(uniqueId.ToString(), out RObject rObj) == true)
+				return rObj;
+		}
 
-    public IEnumerable<RObject> GetNearestObjectFromIndexId(string indexId, Vector2Int pos, Predicate<RObject> predicate = null)
-    {
-        RegionSystem regionSystem = GameManager.Instance.WorldMap.RegionSystem;
+		return null;
+	}
 
-        if (regionSystem.GetRegionFromTilePos(pos, out LocalRegion region) == false)
-            yield break;
+	public IEnumerable<RObject> GetNearestObjectFromIndexId(string indexId, Vector2Int pos, Predicate<RObject> predicate = null)
+	{
+		RegionSystem regionSystem = GameManager.Instance.WorldMap.RegionSystem;
 
-        PriorityQueue<NearNode<RObject>> pq = new PriorityQueue<NearNode<RObject>>();
-        foreach (var regionObjList in GetObjectsFromIndexId(indexId))
-        {
-            if (regionSystem.IsReachable(region, regionObjList.Key) == false)
-                continue;
+		if (regionSystem.GetRegionFromTilePos(pos, out LocalRegion region) == false)
+			yield break;
 
-            foreach (var rObj in regionObjList.Value)
-            {
-                if (predicate != null && predicate(rObj) == false)
-                    continue;
+		PriorityQueue<NearNode<RObject>> pq = new PriorityQueue<NearNode<RObject>>();
+		foreach (var regionObjList in GetObjectsFromIndexId(indexId))
+		{
+			if (regionSystem.IsReachable(region, regionObjList.Key) == false)
+				continue;
 
-                NearNode<RObject> nearNode = new NearNode<RObject>
-                {
-                    position = rObj,
-                    distance = Vector2Int.Distance(pos, rObj.MapTilePosition)
-                };
+			foreach (var rObj in regionObjList.Value)
+			{
+				if (predicate != null && predicate(rObj) == false)
+					continue;
 
-                pq.Enqueue(nearNode);
-            }
-        }
+				NearNode<RObject> nearNode = new NearNode<RObject>
+				{
+					position = rObj,
+					distance = Vector2Int.Distance(pos, rObj.MapTilePosition)
+				};
 
-        while (pq.Count > 0)
-            yield return pq.Dequeue().position;
-    }
+				pq.Enqueue(nearNode);
+			}
+		}
 
-    public IEnumerable<TRObj> GetNearestObjectFromIndexId<TRObj>(string indexId, Vector2Int pos, Predicate<TRObj> predicate = null) where TRObj : RObject
-    {
-        RegionSystem regionSystem = GameManager.Instance.WorldMap.RegionSystem;
+		while (pq.Count > 0)
+			yield return pq.Dequeue().position;
+	}
 
-        if (regionSystem.GetRegionFromTilePos(pos, out LocalRegion region) == false)
-            yield break;
+	public IEnumerable<TRObj> GetNearestObjectFromIndexId<TRObj>(string indexId, Vector2Int pos, Predicate<TRObj> predicate = null) where TRObj : RObject
+	{
+		RegionSystem regionSystem = GameManager.Instance.WorldMap.RegionSystem;
 
-        PriorityQueue<NearNode<TRObj>> pq = new PriorityQueue<NearNode<TRObj>>();
-        foreach (var regionObjList in GetObjectsFromIndexId(indexId))
-        {
-            if (regionSystem.IsReachable(region, regionObjList.Key) == false)
-                continue;
+		if (regionSystem.GetRegionFromTilePos(pos, out LocalRegion region) == false)
+			yield break;
 
-            foreach (var rObj in regionObjList.Value)
-            {
-                if (rObj is TRObj == false)
-                    continue;
+		PriorityQueue<NearNode<TRObj>> pq = new PriorityQueue<NearNode<TRObj>>();
+		foreach (var regionObjList in GetObjectsFromIndexId(indexId))
+		{
+			if (regionSystem.IsReachable(region, regionObjList.Key) == false)
+				continue;
 
-                TRObj tRObj = rObj as TRObj;
+			foreach (var rObj in regionObjList.Value)
+			{
+				if (rObj is TRObj == false)
+					continue;
 
-                if (predicate != null && predicate(tRObj) == false)
-                    continue;
+				TRObj tRObj = rObj as TRObj;
 
-                NearNode<TRObj> nearNode = new NearNode<TRObj>
-                {
-                    position = tRObj,
-                    distance = Vector2Int.Distance(pos, rObj.MapTilePosition)
-                };
+				if (predicate != null && predicate(tRObj) == false)
+					continue;
 
-                pq.Enqueue(nearNode);
-            }
-        }
+				NearNode<TRObj> nearNode = new NearNode<TRObj>
+				{
+					position = tRObj,
+					distance = Vector2Int.Distance(pos, rObj.MapTilePosition)
+				};
 
-        while (pq.Count > 0)
-            yield return pq.Dequeue().position;
-    }
+				pq.Enqueue(nearNode);
+			}
+		}
 
-    public void Update()
-    {
-        if (destroyList.Count > 0)
-            DestroyAllInList();
+		while (pq.Count > 0)
+			yield return pq.Dequeue().position;
+	}
 
-        foreach (var rObj in iteratorList)
-        {
-            rObj.Update(Time.deltaTime);
-        }
-            
-    }
+	public void Update()
+	{
+		if (destroyList.Count > 0)
+			DestroyAllInList();
 
-    public void LateUpdate()
-    {
-        foreach (var rObj in iteratorList)
-        {
-            rObj.UpdateBehaviourVisible();
-        }
-    }
+		foreach (var rObj in iteratorList)
+		{
+			rObj.Update(Time.deltaTime);
+		}
+	}
+
+	public void LateUpdate()
+	{
+		foreach (var rObj in iteratorList)
+		{
+			rObj.UpdateBehaviourVisible();
+		}
+	}
 }

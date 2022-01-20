@@ -121,19 +121,19 @@ public class SingletonBehaviour<T> : SingletonBehaviour where T : SingletonBehav
 		else
 		{
 			var singletonAttribute = GetSingletonAttribute();
-			if ( singletonAttribute != null && singletonAttribute.DontDestroyOnLoad )
+			if (singletonAttribute != null && singletonAttribute.DontDestroyOnLoad)
 			{
-				if ( DontDestroyRoot == null )
+				if (DontDestroyRoot == null)
 				{
-					DontDestroyRoot = GameObject.Find("DontDestroyOnLoad" );
+					DontDestroyRoot = GameObject.Find("DontDestroyOnLoad");
 				}
 
-				if ( DontDestroyRoot == null )
+				if (DontDestroyRoot == null)
 				{
-					DontDestroyRoot = new GameObject( "DontDestroyOnLoad" );
-					DontDestroyOnLoad( DontDestroyRoot );
+					DontDestroyRoot = new GameObject("DontDestroyOnLoad");
+					DontDestroyOnLoad(DontDestroyRoot);
 				}
-				transform.SetParent( DontDestroyRoot.transform );
+				transform.SetParent(DontDestroyRoot.transform);
 			}
 		}
 	}

@@ -1,58 +1,53 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class InstallObject
 {
-    public static RObject CreateInstallObject(InstallObjectDataDescriptor desc)
-    {
-        if (desc is WorkBenchDataDescriptor)
-            return new WorkbenchObject(desc as WorkBenchDataDescriptor);
+	public static RObject CreateInstallObject(InstallObjectDataDescriptor desc)
+	{
+		if (desc is WorkBenchDataDescriptor)
+			return new WorkbenchObject(desc as WorkBenchDataDescriptor);
 
-        return null;
-    }
+		return null;
+	}
 }
 
 public class WorkbenchObject : WorkPlaceObject
 {
-    public WorkBenchDataDescriptor Desc { get; private set; }
+	public WorkBenchDataDescriptor Desc { get; private set; }
 
-    public Inventory Inventory { get; private set; }
-    
-    public override Vector2Int Size { get => Desc.Size; }
+	public Inventory Inventory { get; private set; }
 
-    public WorkbenchObject(WorkBenchDataDescriptor desc)
-    {
-        Desc = desc;
-        VisualImage = Resources.Load<Sprite>(Desc.Image);
-        IndexId = $"WorkBench/{Desc.Id}";
-    }
+	public override Vector2Int Size { get => Desc.Size; }
 
-    public override void VisualUpdate(float dt)
-    {
+	public WorkbenchObject(WorkBenchDataDescriptor desc)
+	{
+		Desc = desc;
+		VisualImage = Resources.Load<Sprite>(Desc.Image);
+		IndexId = $"WorkBench/{Desc.Id}";
+	}
 
-    }
+	public override void VisualUpdate(float dt)
+	{
+	}
 
-    public void Cancel()
-    {
-        
-    }
-    public void Complete()
-    {
-        
-    }
+	public void Cancel()
+	{
+	}
 
-    public void Work()
-    { 
-        
-    }
+	public void Complete()
+	{
+	}
 
-    public override void OnCompleteWork(WorkBase work)
-    {
-    }
+	public void Work()
+	{
+	}
 
-    public override WorkBase GetWork(Pawn pawn)
-    {
-        return null;
-    }
+	public override void OnCompleteWork(WorkBase work)
+	{
+	}
+
+	public override WorkBase GetWork(Pawn pawn)
+	{
+		return null;
+	}
 }

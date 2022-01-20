@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,15 +9,15 @@ public class ItemReserver : ReserverBase<ItemContainer, ItemContainer>
 {
 	public Item Item { get; private set; }
 
-	public ItemReserver(ItemContainer source, ItemContainer dest, Item item) : base(source,dest)
+	public ItemReserver(ItemContainer source, ItemContainer dest, Item item) : base(source, dest)
 	{
 		Item = item;
 	}
 
-    public override void Destroy()
-    {
+	public override void Destroy()
+	{
 		GameManager.Instance.ItemSystem.ReserveSystem.RemoveReserver(this);
-    }
+	}
 }
 
 public partial class ItemSystem : IObjectManagerListener
@@ -31,7 +30,6 @@ public partial class ItemSystem : IObjectManagerListener
 	{
 		ReserveSystem = new ItemReserverSystem();
 	}
-
 
 	public bool DropItem(Vector2Int pos, Item dropItem, out Item dropFailed)
 	{
@@ -64,46 +62,46 @@ public partial class ItemSystem : IObjectManagerListener
 			objectManager.CreateObject(newItem);
 		}
 
-        if (dropFailed.Amount > 0)
-        {
-            PriorityQueue<NearNode<Vector2Int>> pq = new PriorityQueue<NearNode<Vector2Int>>();
+		if (dropFailed.Amount > 0)
+		{
+			PriorityQueue<NearNode<Vector2Int>> pq = new PriorityQueue<NearNode<Vector2Int>>();
 
-            foreach (var region in reachableRegions)
-            {
-                foreach (var tilepos in region.GetTiles())
-                {
-                    NearNode<Vector2Int> serachTile = new NearNode<Vector2Int>();
-                    serachTile.position = tilepos;
-                    serachTile.distance = VectorExt.Get8DirectionLength(serachTile.position, pos);
+			foreach (var region in reachableRegions)
+			{
+				foreach (var tilepos in region.GetTiles())
+				{
+					NearNode<Vector2Int> serachTile = new NearNode<Vector2Int>();
+					serachTile.position = tilepos;
+					serachTile.distance = VectorExt.Get8DirectionLength(serachTile.position, pos);
 
-                    pq.Enqueue(serachTile);
-                }
-            }
+					pq.Enqueue(serachTile);
+				}
+			}
 
-            while (pq.Count != 0)
-            {
-                var node = pq.Dequeue();
-                if (existItems.TryGetValue(node.position, out var itemObj) == true)
-                {
-                    if (itemObj.ItemContainer.Item.ItemDesc == dropItem.ItemDesc)
-                    {
-                        itemObj.ItemContainer.AddItems(dropFailed, out dropFailed);
-                    }
-                }
-                else
-                {
-                    ItemObject newItem = new ItemObject(dropItem.ItemDesc);
-                    newItem.ItemContainer.AddItems(dropFailed, out dropFailed);
-                    newItem.MapTilePosition = node.position;
-                    objectManager.CreateObject(newItem);
-                }
+			while (pq.Count != 0)
+			{
+				var node = pq.Dequeue();
+				if (existItems.TryGetValue(node.position, out var itemObj) == true)
+				{
+					if (itemObj.ItemContainer.Item.ItemDesc == dropItem.ItemDesc)
+					{
+						itemObj.ItemContainer.AddItems(dropFailed, out dropFailed);
+					}
+				}
+				else
+				{
+					ItemObject newItem = new ItemObject(dropItem.ItemDesc);
+					newItem.ItemContainer.AddItems(dropFailed, out dropFailed);
+					newItem.MapTilePosition = node.position;
+					objectManager.CreateObject(newItem);
+				}
 
-                if (dropFailed.Amount <= 0)
-                    return true;
-            }
-        }
+				if (dropFailed.Amount <= 0)
+					return true;
+			}
+		}
 
-        return false;
+		return false;
 	}
 
 	public bool DropItem(Vector2Int pos, List<Item> dropItems, out List<Item> dropFailedList)
@@ -172,11 +170,11 @@ public partial class ItemSystem : IObjectManagerListener
 	}
 
 	public void OnCreateObject(RObject rObject)
-    {
-    }
+	{
+	}
 
-    public void OnDestroyObject(RObject rObject)
-    {
+	public void OnDestroyObject(RObject rObject)
+	{
 		if (containierDict.TryGetValue(rObject, out List<ItemContainer> containerList))
 		{
 			foreach (var itemContainer in containerList)
@@ -186,5 +184,4 @@ public partial class ItemSystem : IObjectManagerListener
 			containierDict.Remove(rObject);
 		}
 	}
-
 }

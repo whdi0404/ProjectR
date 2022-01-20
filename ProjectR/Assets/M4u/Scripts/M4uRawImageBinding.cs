@@ -7,32 +7,32 @@ using UnityEngine.UI;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uRawImageBinding. Bind RawImage
-    /// </summary>
+	/// <summary>
+	/// M4uRawImageBinding. Bind RawImage
+	/// </summary>
 	[AddComponentMenu("M4u/RawImageBinding")]
-    public class M4uRawImageBinding : M4uBindingSingle
-    {
-        RawImage ui;
+	public class M4uRawImageBinding : M4uBindingSingle
+	{
+		private RawImage ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = GetComponent<RawImage>();
-            OnChange();
-        }
+			ui = GetComponent<RawImage>();
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            ui.texture = Values[0] as Texture;
-        }
+			ui.texture = Values[0] as Texture;
+		}
 
-        public override string ToString()
-        {
-            return "RawImage.texture=" + GetBindStr(Path);
-        }
-    }
+		public override string ToString()
+		{
+			return "RawImage.texture=" + GetBindStr(Path);
+		}
+	}
 }

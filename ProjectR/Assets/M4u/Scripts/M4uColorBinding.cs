@@ -7,43 +7,43 @@ using UnityEngine.UI;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uColorBinding. Bind Color
-    /// </summary>
-    [AddComponentMenu("M4u/ColorBinding")]
-    public class M4uColorBinding : M4uBindingSingle
-    {
-        Transform ui;
+	/// <summary>
+	/// M4uColorBinding. Bind Color
+	/// </summary>
+	[AddComponentMenu("M4u/ColorBinding")]
+	public class M4uColorBinding : M4uBindingSingle
+	{
+		private Transform ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = transform;
-            OnChange();
-        }
+			ui = transform;
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            SetColor(ui, (Color)Values[0]);
-        }
+			SetColor(ui, (Color)Values[0]);
+		}
 
-        void SetColor(Transform t, Color color)
-        {
-            var g = t.GetComponent<Graphic>();
-            if(g != null) g.color = color;
+		private void SetColor(Transform t, Color color)
+		{
+			var g = t.GetComponent<Graphic>();
+			if (g != null) g.color = color;
 
-            for(var i = 0; i < t.childCount; i++)
-            {
-                SetColor(t.GetChild(i), color);
-            }
-        }
+			for (var i = 0; i < t.childCount; i++)
+			{
+				SetColor(t.GetChild(i), color);
+			}
+		}
 
-        public override string ToString()
-        {
-            return "Graphic.color=" + GetBindStr(Path);
-        }
-    }
+		public override string ToString()
+		{
+			return "Graphic.color=" + GetBindStr(Path);
+		}
+	}
 }

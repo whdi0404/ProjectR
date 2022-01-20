@@ -4,8 +4,9 @@
 //----------------------------------------------
 namespace M4u
 {
-    /// <summary>
-    /// M4uContextInterface
-    /// </summary>
-	public interface M4uContextInterface { }
+	/// <summary>
+	/// M4uContextInterface
+	/// </summary>
+	public interface M4uContextInterface
+	{ }
 }

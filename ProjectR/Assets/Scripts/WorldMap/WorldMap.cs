@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -7,7 +6,7 @@ using Random = UnityEngine.Random;
 
 public interface IWorldMapListener
 {
-    void OnChangeTile(Vector2Int groupIndex, Vector2Int tilePos, AtlasInfoDescriptor prevTile, AtlasInfoDescriptor newTile);
+	void OnChangeTile(Vector2Int groupIndex, Vector2Int tilePos, AtlasInfoDescriptor prevTile, AtlasInfoDescriptor newTile);
 }
 
 public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
@@ -31,16 +30,16 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		}
 
 		public bool Intersects(BoundsInt b)
-        {
+		{
 			return bounds.Intersects(b);
-        }
+		}
 
 		public bool TryGetTile(Vector2Int tilePos, out AtlasInfoDescriptor desc)
 		{
 			desc = null;
 			if (bounds.TileContains(tilePos) == true)
-            {
-                Vector2Int v = tilePos - new Vector2Int(bounds.min.x, bounds.min.y);
+			{
+				Vector2Int v = tilePos - new Vector2Int(bounds.min.x, bounds.min.y);
 				desc = fragmentData[v.x + v.y * bounds.size.x];
 
 				return true;
@@ -63,6 +62,7 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	//MapData
 	private SmartDictionary<Vector2Int, TileFragmentData> tileGroupDict = new SmartDictionary<Vector2Int, TileFragmentData>();
+
 	private WorldMapRenderer worldMapRenderer;
 	public RegionSystem RegionSystem { get; private set; }
 
@@ -74,21 +74,21 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 
 	private void Awake()
 	{
-		MakeIsland(new Vector2Int(32,32), 256, Random.Range(0, int.MaxValue));
+		MakeIsland(new Vector2Int(32, 32), 256, Random.Range(0, int.MaxValue));
 
-        worldMapRenderer = new WorldMapRenderer();
-        worldMapRenderer.Initialize(this, new Vector2Int(6, 6));
+		worldMapRenderer = new WorldMapRenderer();
+		worldMapRenderer.Initialize(this, new Vector2Int(6, 6));
 
 		RegionSystem = new RegionSystem();
 		RegionSystem.Initialize(this);
 	}
 
-    private void Update()
-    {
+	private void Update()
+	{
 		worldMapRenderer.Update();
 	}
 
-    private void MakeIsland(Vector2Int startPos, int mapSize, int seed)
+	private void MakeIsland(Vector2Int startPos, int mapSize, int seed)
 	{
 		AtlasInfoDescriptor[] islandData = new AtlasInfoDescriptor[mapSize * mapSize];
 
@@ -198,8 +198,8 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		float downWeight = GetTileMovableWeight(down);
 		float upWeight = GetTileMovableWeight(up);
 
-        if (leftWeight > 0)
-            yield return (left, leftWeight);
+		if (leftWeight > 0)
+			yield return (left, leftWeight);
 
 		if (rightWeight > 0)
 			yield return (right, rightWeight);
@@ -211,14 +211,14 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 			yield return (up, upWeight);
 
 		if (includeDiagonal == true)
-        {
-            if (leftWeight > 0 && downWeight > 0)
-            {
-                Vector2Int pos = new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1);
-                float weight = GetTileMovableWeight(pos);
-                if (weight > 0)
-                    yield return (pos, weight);
-            }
+		{
+			if (leftWeight > 0 && downWeight > 0)
+			{
+				Vector2Int pos = new Vector2Int(mapTilePos.x - 1, mapTilePos.y - 1);
+				float weight = GetTileMovableWeight(pos);
+				if (weight > 0)
+					yield return (pos, weight);
+			}
 
 			if (leftWeight > 0 && upWeight > 0)
 			{
@@ -253,21 +253,21 @@ public class WorldMap : MonoBehaviour, IPathFinderGraph<Vector2Int>
 		AtlasInfoDescriptor prevTile = null;
 
 		if (tileGroupDict.TryGetValue(groupIndex, out TileFragmentData fragmentData) == true)
-        {
+		{
 			if (fragmentData.TryGetTile(tilePos, out prevTile) == true)
-			{ 
+			{
 				fragmentData.TrySetTile(tilePos, tileDesc);
 			}
 		}
-        else
-        {
-            Vector2Int groupStartPos = groupIndex * TileGroupSize;
-            Vector2Int groupEndPos = groupStartPos + TileGroupSize;
-            BoundsInt bounds = new BoundsInt();
-            bounds.SetMinMax(new Vector3Int(groupStartPos.x, groupStartPos.y, 0), new Vector3Int(groupEndPos.x, groupEndPos.y, 0));
+		else
+		{
+			Vector2Int groupStartPos = groupIndex * TileGroupSize;
+			Vector2Int groupEndPos = groupStartPos + TileGroupSize;
+			BoundsInt bounds = new BoundsInt();
+			bounds.SetMinMax(new Vector3Int(groupStartPos.x, groupStartPos.y, 0), new Vector3Int(groupEndPos.x, groupEndPos.y, 0));
 
-            tileGroupDict[groupIndex] = new TileFragmentData(bounds);
-        }
+			tileGroupDict[groupIndex] = new TileFragmentData(bounds);
+		}
 
 		onChangeTile?.Invoke(groupIndex, tilePos, prevTile, tileDesc);
 

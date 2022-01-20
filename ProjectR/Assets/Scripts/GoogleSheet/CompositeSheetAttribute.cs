@@ -1,23 +1,19 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 
 namespace Table
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class CompositeSheetAttribute : Attribute
-    {
-        public Type[] SheetsTypeList { get; private set; }
+	[AttributeUsage(AttributeTargets.Class)]
+	public class CompositeSheetAttribute : Attribute
+	{
+		public Type[] SheetsTypeList { get; private set; }
 
-        public CompositeSheetAttribute()
-        {
-        }
+		public CompositeSheetAttribute()
+		{
+		}
 
-        public CompositeSheetAttribute(params Type[] sheetsTypeList)
-        {
-            SheetsTypeList = sheetsTypeList;
-        }
-    }
+		public CompositeSheetAttribute(params Type[] sheetsTypeList)
+		{
+			SheetsTypeList = sheetsTypeList;
+		}
+	}
 }

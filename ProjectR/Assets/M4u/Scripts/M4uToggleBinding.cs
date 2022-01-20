@@ -7,32 +7,32 @@ using UnityEngine.UI;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uToggleBinding. Bind Toggle
-    /// </summary>
+	/// <summary>
+	/// M4uToggleBinding. Bind Toggle
+	/// </summary>
 	[AddComponentMenu("M4u/ToggleBinding")]
-    public class M4uToggleBinding : M4uBindingBool
-    {
-        Toggle ui;
+	public class M4uToggleBinding : M4uBindingBool
+	{
+		private Toggle ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = GetComponent<Toggle>();
-            OnChange();
-        }
+			ui = GetComponent<Toggle>();
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            ui.isOn = IsCheck();
-        }
+			ui.isOn = IsCheck();
+		}
 
-        public override string ToString()
-        {
-            return "Toggle.isOn=" + base.ToString();
-        }
-    }
+		public override string ToString()
+		{
+			return "Toggle.isOn=" + base.ToString();
+		}
+	}
 }

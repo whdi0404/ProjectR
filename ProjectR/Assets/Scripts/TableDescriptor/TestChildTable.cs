@@ -2,8 +2,8 @@ using Table;
 
 public class TestChildDescriptor : Descriptor
 {
-    [GoogleColumn("TestCol1")]
-    public string TestCol1 { get; private set; }
+	[GoogleColumn("TestCol1")]
+	public string TestCol1 { get; private set; }
 }
 
 [GoogleWorkSheet("TestSheet", "Sheet2")]

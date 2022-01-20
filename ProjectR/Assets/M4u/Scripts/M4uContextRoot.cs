@@ -6,36 +6,36 @@ using UnityEngine;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uContextRoot. M4u core script
-    /// </summary>
+	/// <summary>
+	/// M4uContextRoot. M4u core script
+	/// </summary>
 	[AddComponentMenu("M4u/ContextRoot")]
-    public class M4uContextRoot : MonoBehaviour
-    {
-        [M4uDisable] public string ContextName;
-        public M4uContextMonoBehaviour ContextMonoBehaviour;
+	public class M4uContextRoot : MonoBehaviour
+	{
+		[M4uDisable] public string ContextName;
+		public M4uContextMonoBehaviour ContextMonoBehaviour;
 
-        M4uContextInterface context;
+		private M4uContextInterface context;
 
-        /// <summary>
-        /// Context. Data Binding to View
-        /// </summary>
+		/// <summary>
+		/// Context. Data Binding to View
+		/// </summary>
 		public M4uContextInterface Context
-        {
-            get
-            {
-                return context;
-            }
-            set
-            {
-                context = value;
-                if(context != null) ContextName = context.ToString();
-            }
-        }
+		{
+			get
+			{
+				return context;
+			}
+			set
+			{
+				context = value;
+				if (context != null) ContextName = context.ToString();
+			}
+		}
 
-        void Awake()
-        {
-            if(ContextMonoBehaviour != null) Context = ContextMonoBehaviour;
-        }
-    }
+		private void Awake()
+		{
+			if (ContextMonoBehaviour != null) Context = ContextMonoBehaviour;
+		}
+	}
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +12,9 @@ public enum AIState
 public abstract class AINode
 {
 	public event Action<AINode> onCancel;
+
 	public event Action<AINode> onComplete;
+
 	public PawnAI ParentAI { get; protected set; }
 	public Pawn Pawn { get => ParentAI?.Pawn; }
 
@@ -32,18 +33,19 @@ public abstract class AINode
 		IsEnd = true;
 		onCancel?.Invoke(this);
 	}
+
 	public virtual void Complete()
 	{
 		if (IsEnd) return;
 		IsEnd = true;
 		onComplete?.Invoke(this);
 	}
-
 }
 
 public abstract class ActionTask<TReserver> : AINode where TReserver : ReserverBase
 {
 	protected TReserver reserver;
+
 	public ActionTask(TReserver reserver)
 	{
 		this.reserver = reserver;
@@ -72,7 +74,9 @@ public abstract class ActionTask<TReserver> : AINode where TReserver : ReserverB
 public abstract class CompositeTask : AINode
 {
 	protected List<AINode> children = new List<AINode>();
-	protected List<AINode> GetChildren() { return children; }
+
+	protected List<AINode> GetChildren()
+	{ return children; }
 
 	public void AddChild(AINode node)
 	{

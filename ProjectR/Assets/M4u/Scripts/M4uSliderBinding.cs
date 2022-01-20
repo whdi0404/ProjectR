@@ -7,32 +7,32 @@ using UnityEngine.UI;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uSliderBinding. Bind Slider
-    /// </summary>
+	/// <summary>
+	/// M4uSliderBinding. Bind Slider
+	/// </summary>
 	[AddComponentMenu("M4u/SliderBinding")]
-    public class M4uSliderBinding : M4uBindingSingle
-    {
-        Slider ui;
+	public class M4uSliderBinding : M4uBindingSingle
+	{
+		private Slider ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = GetComponent<Slider>();
-            OnChange();
-        }
+			ui = GetComponent<Slider>();
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            ui.value = float.Parse(Values[0].ToString());
-        }
+			ui.value = float.Parse(Values[0].ToString());
+		}
 
-        public override string ToString()
-        {
-            return "Slider.value=" + GetBindStr(Path);
-        }
-    }
+		public override string ToString()
+		{
+			return "Slider.value=" + GetBindStr(Path);
+		}
+	}
 }

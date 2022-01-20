@@ -7,39 +7,39 @@ using UnityEngine.UI;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uInputFieldBindings. Bind InputField
-    /// </summary>
+	/// <summary>
+	/// M4uInputFieldBindings. Bind InputField
+	/// </summary>
 	[AddComponentMenu("M4u/InputFieldBindings")]
-    public class M4uInputFieldBindings : M4uBindingMultiple
-    {
-        public string Format = "";
+	public class M4uInputFieldBindings : M4uBindingMultiple
+	{
+		public string Format = "";
 
-        InputField ui;
+		private InputField ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = GetComponent<InputField>();
-            OnChange();
-        }
+			ui = GetComponent<InputField>();
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            ui.text = string.Format(Format, Values);
-        }
+			ui.text = string.Format(Format, Values);
+		}
 
-        public override string ToString()
-        {
-            var str = "InputField.text=";
-            if(Path != null && Path.Length > 0)
-            {
-                str += string.Format(Format, GetBindStrs(Path));
-            }
-            return str;
-        }
-    }
+		public override string ToString()
+		{
+			var str = "InputField.text=";
+			if (Path != null && Path.Length > 0)
+			{
+				str += string.Format(Format, GetBindStrs(Path));
+			}
+			return str;
+		}
+	}
 }

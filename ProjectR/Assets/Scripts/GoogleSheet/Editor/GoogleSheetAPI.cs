@@ -1,122 +1,122 @@
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
-using Google.Apis.Services;
 using Google.Apis.Util.Store;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using UnityEngine;
-using Newtonsoft.Json;
 using UnityEditor;
+using UnityEngine;
 
 namespace Table
 {
-    class GoogleSheetAPI
-    {
-        public struct SpreadSheetData
-        {
-            public string Name { get; private set; }
-            public List<(string, IList<IList<object>>)> WorkSheetList { get; private set; }
+	internal class GoogleSheetAPI
+	{
+		public struct SpreadSheetData
+		{
+			public string Name { get; private set; }
+			public List<(string, IList<IList<object>>)> WorkSheetList { get; private set; }
 
-            public SpreadSheetData(string name, List<(string, IList<IList<object>>)> workSheetList)
-            {
-                Name = name;
-                WorkSheetList = workSheetList;
-            }
-        }
+			public SpreadSheetData(string name, List<(string, IList<IList<object>>)> workSheetList)
+			{
+				Name = name;
+				WorkSheetList = workSheetList;
+			}
+		}
 
-        // If modifying these scopes, delete your previously saved credentials
-        // at ~/.credentials/sheets.googleapis.com-dotnet-quickstart.json
-        static string CredentialPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Plugins{Path.DirectorySeparatorChar}GoogleApis{Path.DirectorySeparatorChar}client_secret_753833698309-k34ar8gsqkgv3v3jk4m5mvfpqtm77405.apps.googleusercontent.com.json";
-        static string TokenPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Plugins{Path.DirectorySeparatorChar}GoogleApis{Path.DirectorySeparatorChar}";
-        static string User = "whdi04044@gmail.com";
-        static string ApplicationName = "ProjectR";
+		// If modifying these scopes, delete your previously saved credentials
+		// at ~/.credentials/sheets.googleapis.com-dotnet-quickstart.json
+		private static string CredentialPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Plugins{Path.DirectorySeparatorChar}GoogleApis{Path.DirectorySeparatorChar}client_secret_753833698309-k34ar8gsqkgv3v3jk4m5mvfpqtm77405.apps.googleusercontent.com.json";
 
-        private static UserCredential credential;
-        private static UserCredential Credential
-        {
-            get
-            {
-                if (credential == null)
-                {
-                    using (var stream = new FileStream(CredentialPath, FileMode.Open, FileAccess.Read))
-                    {
-                        // The file token.json stores the user's access and refresh tokens, and is created
-                        // automatically when the authorization flow completes for the first time.
+		private static string TokenPath = $"{Application.dataPath}{Path.DirectorySeparatorChar}Plugins{Path.DirectorySeparatorChar}GoogleApis{Path.DirectorySeparatorChar}";
+		private static string User = "whdi04044@gmail.com";
+		private static string ApplicationName = "ProjectR";
 
-                        var broker = GoogleWebAuthorizationBroker.AuthorizeAsync(
-                            GoogleClientSecrets.Load(stream).Secrets,
-                            new string[] { SheetsService.Scope.SpreadsheetsReadonly },
-                            User,
-                            CancellationToken.None, new FileDataStore(TokenPath));
+		private static UserCredential credential;
 
-                        EditorUtility.DisplayProgressBar("GoogleAPIAuthorize", "progressing..", 0);
-                        EditorUtility.ClearProgressBar();
-                        credential = broker.Result;
-                    }
+		private static UserCredential Credential
+		{
+			get
+			{
+				if (credential == null)
+				{
+					using (var stream = new FileStream(CredentialPath, FileMode.Open, FileAccess.Read))
+					{
+						// The file token.json stores the user's access and refresh tokens, and is created
+						// automatically when the authorization flow completes for the first time.
 
-                    return credential;
-                }
+						var broker = GoogleWebAuthorizationBroker.AuthorizeAsync(
+							GoogleClientSecrets.Load(stream).Secrets,
+							new string[] { SheetsService.Scope.SpreadsheetsReadonly },
+							User,
+							CancellationToken.None, new FileDataStore(TokenPath));
 
-                return credential;
-            }
-        }
+						EditorUtility.DisplayProgressBar("GoogleAPIAuthorize", "progressing..", 0);
+						EditorUtility.ClearProgressBar();
+						credential = broker.Result;
+					}
 
-        private static SheetsService service;
-        public static SheetsService Service
-        {
-            get
-            {
-                if (service == null)
-                {
-                    service = new SheetsService(new BaseClientService.Initializer()
-                    {
-                        HttpClientInitializer = Credential,
-                        ApplicationName = ApplicationName,
-                    });
+					return credential;
+				}
 
-                    return service;
-                }
+				return credential;
+			}
+		}
 
-                return service;
-            }
-        }
+		private static SheetsService service;
 
-        public static Spreadsheet GetSpreadSheet(string spreadSheetId)
-        {
-            SpreadsheetsResource.GetRequest request = Service.Spreadsheets.Get(spreadSheetId);
-            Spreadsheet response = request.Execute();
+		public static SheetsService Service
+		{
+			get
+			{
+				if (service == null)
+				{
+					service = new SheetsService(new BaseClientService.Initializer()
+					{
+						HttpClientInitializer = Credential,
+						ApplicationName = ApplicationName,
+					});
 
-            return response;
-        }
+					return service;
+				}
 
-        public static IList<IList<object>> GetSpreadSheetData(string spreadSheetId, string spreadSheetName)
-        {
-            string range = $"{spreadSheetName}!1:10000";
-            SpreadsheetsResource.ValuesResource.GetRequest request = Service.Spreadsheets.Values.Get(spreadSheetId, range);
-            ValueRange response = request.Execute();
-            return response.Values;
-        }
+				return service;
+			}
+		}
 
-        public static SpreadSheetData GetSpreadSheetData(string spreadSheetId)
-        {
-            Spreadsheet spreadSheet = GetSpreadSheet(spreadSheetId);
+		public static Spreadsheet GetSpreadSheet(string spreadSheetId)
+		{
+			SpreadsheetsResource.GetRequest request = Service.Spreadsheets.Get(spreadSheetId);
+			Spreadsheet response = request.Execute();
 
-            string name = spreadSheet.Properties.Title;
-            List<(string, IList<IList<object>>)> workSheetList = new List<(string, IList<IList<object>>)>();
+			return response;
+		}
 
-            foreach (var sheet in spreadSheet.Sheets)
-            {
-                string workSheetName = sheet.Properties.Title;
-                var workSheetData = GetSpreadSheetData(spreadSheetId, workSheetName);
+		public static IList<IList<object>> GetSpreadSheetData(string spreadSheetId, string spreadSheetName)
+		{
+			string range = $"{spreadSheetName}!1:10000";
+			SpreadsheetsResource.ValuesResource.GetRequest request = Service.Spreadsheets.Values.Get(spreadSheetId, range);
+			ValueRange response = request.Execute();
+			return response.Values;
+		}
 
-                workSheetList.Add((workSheetName, workSheetData));
-            }
+		public static SpreadSheetData GetSpreadSheetData(string spreadSheetId)
+		{
+			Spreadsheet spreadSheet = GetSpreadSheet(spreadSheetId);
 
-            return new SpreadSheetData(name, workSheetList);
-        }
+			string name = spreadSheet.Properties.Title;
+			List<(string, IList<IList<object>>)> workSheetList = new List<(string, IList<IList<object>>)>();
 
-    }
+			foreach (var sheet in spreadSheet.Sheets)
+			{
+				string workSheetName = sheet.Properties.Title;
+				var workSheetData = GetSpreadSheetData(spreadSheetId, workSheetName);
+
+				workSheetList.Add((workSheetName, workSheetData));
+			}
+
+			return new SpreadSheetData(name, workSheetList);
+		}
+	}
 }

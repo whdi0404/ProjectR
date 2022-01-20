@@ -9,107 +9,108 @@ using UnityEngine.U2D;
 
 public class AtlasObject : SerializedScriptableObject
 {
-    private struct AtlasProperty
-    {
-        public static readonly int Size = Marshal.SizeOf<AtlasProperty>();
+	private struct AtlasProperty
+	{
+		public static readonly int Size = Marshal.SizeOf<AtlasProperty>();
 
-        public int drawOrder;
-        public Vector2 uvStart;
-        public Vector2 uvEnd;
-    }
+		public int drawOrder;
+		public Vector2 uvStart;
+		public Vector2 uvEnd;
+	}
 
-    [OdinSerialize]
-    public SpriteAtlas spriteAtlas { get; private set; }
+	[OdinSerialize]
+	public SpriteAtlas spriteAtlas { get; private set; }
 
-    [NonSerialized]
-    private ComputeBuffer atlasPropertiesBuffer = null;
-    public ComputeBuffer AtlasPropertiesBuffer
-    {
-        get
-        {
-            if (atlasPropertiesBuffer == null)
-            {
-                Initialize();
-            }
-            return atlasPropertiesBuffer;
-        }
-    }
+	[NonSerialized]
+	private ComputeBuffer atlasPropertiesBuffer = null;
 
-    [NonSerialized]
-    Texture2D atlasTexture;
-    public Texture2D AtlasTexture
-    {
-        get
-        {
-            if (atlasTexture == null)
-            {
-                Initialize();
-            }
-            return atlasTexture;
-        }
-    }
+	public ComputeBuffer AtlasPropertiesBuffer
+	{
+		get
+		{
+			if (atlasPropertiesBuffer == null)
+			{
+				Initialize();
+			}
+			return atlasPropertiesBuffer;
+		}
+	}
 
-    [NonSerialized]
-    private SmartDictionary<string, int> spriteIndex;
+	[NonSerialized]
+	private Texture2D atlasTexture;
 
-    public void Initialize()
-    {
-        spriteIndex = new SmartDictionary<string, int>();
+	public Texture2D AtlasTexture
+	{
+		get
+		{
+			if (atlasTexture == null)
+			{
+				Initialize();
+			}
+			return atlasTexture;
+		}
+	}
 
-        var atlasInfos = TableManager.GetTable<TileAtlasInfoTable>().All();
-        int textureCount = atlasInfos.Count();
-        AtlasProperty[] atlasProperties = new AtlasProperty[textureCount];
-        int index = 0;
-        foreach (AtlasInfoDescriptor atlasInfo in atlasInfos)
-        {
-            AtlasProperty prop = new AtlasProperty();
+	[NonSerialized]
+	private SmartDictionary<string, int> spriteIndex;
 
-            prop.drawOrder = atlasInfo.DrawOrder;
+	public void Initialize()
+	{
+		spriteIndex = new SmartDictionary<string, int>();
 
-            Sprite sprite = spriteAtlas.GetSprite(atlasInfo.Id);
+		var atlasInfos = TableManager.GetTable<TileAtlasInfoTable>().All();
+		int textureCount = atlasInfos.Count();
+		AtlasProperty[] atlasProperties = new AtlasProperty[textureCount];
+		int index = 0;
+		foreach (AtlasInfoDescriptor atlasInfo in atlasInfos)
+		{
+			AtlasProperty prop = new AtlasProperty();
 
-            Vector2[] uvs = sprite.uv;// SpriteUtility.GetSpriteUVs(sprite, true);
-            if (atlasTexture == null)
-                atlasTexture = sprite.texture;// SpriteUtility.GetSpriteTexture(sprite, true);
+			prop.drawOrder = atlasInfo.DrawOrder;
 
-            Vector2 uvStart = new Vector2(float.MaxValue, float.MaxValue);
-            Vector2 uvEnd = new Vector2(float.MinValue, float.MinValue);
-            foreach (var uv in uvs)
-            {
-                if (uv.x <= uvStart.x && uv.y <= uvStart.y)
-                    uvStart = uv;
+			Sprite sprite = spriteAtlas.GetSprite(atlasInfo.Id);
 
-                if (uv.x >= uvEnd.x && uv.y >= uvEnd.y)
-                    uvEnd = uv;
-            }
-            prop.uvStart = uvStart;
-            prop.uvEnd = uvEnd;
+			Vector2[] uvs = sprite.uv;// SpriteUtility.GetSpriteUVs(sprite, true);
+			if (atlasTexture == null)
+				atlasTexture = sprite.texture;// SpriteUtility.GetSpriteTexture(sprite, true);
 
-            spriteIndex[atlasInfo.Id] = index;
-            atlasProperties[index++] = prop;
-        }
+			Vector2 uvStart = new Vector2(float.MaxValue, float.MaxValue);
+			Vector2 uvEnd = new Vector2(float.MinValue, float.MinValue);
+			foreach (var uv in uvs)
+			{
+				if (uv.x <= uvStart.x && uv.y <= uvStart.y)
+					uvStart = uv;
 
-        atlasPropertiesBuffer = new ComputeBuffer(textureCount, AtlasProperty.Size);
-        atlasPropertiesBuffer.SetData(atlasProperties);
+				if (uv.x >= uvEnd.x && uv.y >= uvEnd.y)
+					uvEnd = uv;
+			}
+			prop.uvStart = uvStart;
+			prop.uvEnd = uvEnd;
 
-    }
+			spriteIndex[atlasInfo.Id] = index;
+			atlasProperties[index++] = prop;
+		}
 
-    public int GetSpriteIndex(string spriteId)
-    {
-        if (spriteIndex == null)
-            Initialize();
+		atlasPropertiesBuffer = new ComputeBuffer(textureCount, AtlasProperty.Size);
+		atlasPropertiesBuffer.SetData(atlasProperties);
+	}
 
-        return spriteIndex[spriteId];
-    }
+	public int GetSpriteIndex(string spriteId)
+	{
+		if (spriteIndex == null)
+			Initialize();
 
-    public void Destroy()
-    {
-        if(atlasPropertiesBuffer != null)
-            atlasPropertiesBuffer.Release();
-    }
+		return spriteIndex[spriteId];
+	}
 
-    private void OnDisable()
-    {
-        Destroy();
-    }
+	public void Destroy()
+	{
+		if (atlasPropertiesBuffer != null)
+			atlasPropertiesBuffer.Release();
+	}
+
+	private void OnDisable()
+	{
+		Destroy();
+	}
 }

@@ -4,19 +4,19 @@
 //----------------------------------------------
 namespace M4u
 {
-    /// <summary>
-    /// M4uBindingMultiple. Bind multiple Path
-    /// </summary>
+	/// <summary>
+	/// M4uBindingMultiple. Bind multiple Path
+	/// </summary>
 	public class M4uBindingMultiple : M4uBinding
-    {
-        public string[] Path;
+	{
+		public string[] Path;
 
-        public override void Awake()
-        {
-            base.Awake();
+		public override void Awake()
+		{
+			base.Awake();
 
-            Paths  = Path;
-            Values = new object[Paths.Length];
-        }
-    }
+			Paths = Path;
+			Values = new object[Paths.Length];
+		}
+	}
 }

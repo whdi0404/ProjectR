@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldMapRenderer
@@ -15,7 +13,7 @@ public class WorldMapRenderer
 
 	private Camera mainCamera;
 
-    public void Initialize(WorldMap worldMap, Vector2Int renderTileGroupAmount)
+	public void Initialize(WorldMap worldMap, Vector2Int renderTileGroupAmount)
 	{
 		this.worldMap = worldMap;
 		this.renderTileGroupAmount = renderTileGroupAmount;
@@ -25,21 +23,21 @@ public class WorldMapRenderer
 
 		mainCamera = Camera.main;
 
-        tileGroups = new TileGroup[renderTileGroupAmount.x, renderTileGroupAmount.y];
-        for (int x = 0; x < renderTileGroupAmount.x; ++x)
-            for (int y = 0; y < renderTileGroupAmount.y; ++y)
-            {
-                GameObject go = new GameObject("TileGroup");
-                TileGroup tileGroup = go.AddComponent<TileGroup>();
-                tileGroup.Initialize(atlasObject, tileGroupMaterial, tileGroupSize.x, tileGroupSize.y, "Water");
-                tileGroups[x, y] = tileGroup;
-            }
+		tileGroups = new TileGroup[renderTileGroupAmount.x, renderTileGroupAmount.y];
+		for (int x = 0; x < renderTileGroupAmount.x; ++x)
+			for (int y = 0; y < renderTileGroupAmount.y; ++y)
+			{
+				GameObject go = new GameObject("TileGroup");
+				TileGroup tileGroup = go.AddComponent<TileGroup>();
+				tileGroup.Initialize(atlasObject, tileGroupMaterial, tileGroupSize.x, tileGroupSize.y, "Water");
+				tileGroups[x, y] = tileGroup;
+			}
 
 		UpdateTileGroup(true);
 	}
 
 	public void Update()
-    {
+	{
 		UpdateTileGroup();
 	}
 
@@ -62,11 +60,12 @@ public class WorldMapRenderer
 
 		Vector2Int fragmentTile = tile - groupIndex * worldMap.TileGroupSize;
 
-        worldMap.TryGetTile(tile, out AtlasInfoDescriptor desc);
+		worldMap.TryGetTile(tile, out AtlasInfoDescriptor desc);
 
-        tileGroups[ix, iy].SetTile(desc.Id, fragmentTile.x, fragmentTile.y);
-        tileGroups[ix, iy].Apply();
+		tileGroups[ix, iy].SetTile(desc.Id, fragmentTile.x, fragmentTile.y);
+		tileGroups[ix, iy].Apply();
 	}
+
 	private Vector2Int prevCenterGroupPos;
 
 	private void UpdateTileGroup(bool first = false)

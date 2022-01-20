@@ -9,79 +9,78 @@ public class PriorityQueue<T> where T : IComparable<T>
 	public int Count { get => container.Count; }
 	private int CompSign { get => isDescending ? 1 : -1; }
 
-	public PriorityQueue( bool isDescending = false )
+	public PriorityQueue(bool isDescending = false)
 	{
 		container = new List<T>();
 		this.isDescending = isDescending;
 	}
 
-	public void Enqueue( T newData )
+	public void Enqueue(T newData)
 	{
 		int currentIndex = container.Count;
-		container.Add( newData );
+		container.Add(newData);
 
-		if ( currentIndex == 0 )
+		if (currentIndex == 0)
 			return;
 
 		do
 		{
-			int parentIndex = GetParentIndex( currentIndex );
+			int parentIndex = GetParentIndex(currentIndex);
 
-			if ( newData.CompareTo( container[ parentIndex ] ) == CompSign )
+			if (newData.CompareTo(container[parentIndex]) == CompSign)
 			{
-				T parentData = container[ parentIndex ];
-				container[ parentIndex ] = newData;
-				container[ currentIndex ] = parentData;
+				T parentData = container[parentIndex];
+				container[parentIndex] = newData;
+				container[currentIndex] = parentData;
 				currentIndex = parentIndex;
 			}
 			else
 				break;
-
 		}
-		while ( true );
+		while (true);
 	}
 
 	public T Dequeue()
 	{
-		T retVal = container[ 0 ];
+		T retVal = container[0];
 
-		T sortData = container[ 0 ] = container[ container.Count - 1 ];
-		container.RemoveAt( container.Count - 1 );
+		T sortData = container[0] = container[container.Count - 1];
+		container.RemoveAt(container.Count - 1);
 
 		int currentIndex = 0;
 		do
 		{
-			int rightChildIndex = GetRightChildIndex( currentIndex );
+			int rightChildIndex = GetRightChildIndex(currentIndex);
 			int leftChildIndex = rightChildIndex - 1;
 
-			if ( leftChildIndex >= container.Count )
+			if (leftChildIndex >= container.Count)
 				break;
 
-			int leftComp = sortData.CompareTo( container[ leftChildIndex ] );
-			int rightComp = rightChildIndex < container.Count ? sortData.CompareTo( container[ rightChildIndex ] ) : 0;
+			int leftComp = sortData.CompareTo(container[leftChildIndex]);
+			int rightComp = rightChildIndex < container.Count ? sortData.CompareTo(container[rightChildIndex]) : 0;
 
 			int sortIndex;
 
-			if ( leftComp == -CompSign && rightComp == -CompSign )
+			if (leftComp == -CompSign && rightComp == -CompSign)
 			{
-				if ( container[ leftChildIndex ].CompareTo( container[ rightChildIndex ] ) == CompSign )
+				if (container[leftChildIndex].CompareTo(container[rightChildIndex]) == CompSign)
 					sortIndex = leftChildIndex;
 				else
 					sortIndex = rightChildIndex;
 			}
-			else if ( leftComp == -CompSign )
+			else if (leftComp == -CompSign)
 				sortIndex = leftChildIndex;
-			else if ( rightComp == -CompSign )
+			else if (rightComp == -CompSign)
 				sortIndex = rightChildIndex;
 			else
 				break;
 
-			T temp = container[ sortIndex ];
-			container[ sortIndex ] = sortData;
-			container[ currentIndex ] = temp;
+			T temp = container[sortIndex];
+			container[sortIndex] = sortData;
+			container[currentIndex] = temp;
 			currentIndex = sortIndex;
 		}
-		while ( true );
+		while (true);
 
 		return retVal;
 	}
@@ -91,13 +90,13 @@ public class PriorityQueue<T> where T : IComparable<T>
 		container.Clear();
 	}
 
-	private static int GetParentIndex( int index )
+	private static int GetParentIndex(int index)
 	{
-		return ( index - 1 ) / 2;
+		return (index - 1) / 2;
 	}
 
-	private static int GetRightChildIndex( int index )
+	private static int GetRightChildIndex(int index)
 	{
-		return ( index + 1 ) * 2;
+		return (index + 1) * 2;
 	}
 }

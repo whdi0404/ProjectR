@@ -6,8 +6,9 @@ using UnityEngine;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uContextMonoBehaviour
-    /// </summary>
-	public class M4uContextMonoBehaviour : MonoBehaviour, M4uContextInterface { }
+	/// <summary>
+	/// M4uContextMonoBehaviour
+	/// </summary>
+	public class M4uContextMonoBehaviour : MonoBehaviour, M4uContextInterface
+	{ }
 }

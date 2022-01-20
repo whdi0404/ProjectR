@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+
 public abstract class ItemContainer
 {
 	public RObject ParentObject { get; protected set; }
@@ -34,6 +34,7 @@ public abstract class ItemContainer
 
 		return removeFailed.Amount <= 0;
 	}
+
 	public void RemoveAllItems()
 	{
 		ItemDict.Clear();
@@ -67,29 +68,29 @@ public abstract class ItemContainer
 	{
 		SmartDictionary<ItemDataDescriptor, int> retVal = new SmartDictionary<ItemDataDescriptor, int>(ItemDict);
 
-        ItemReserverSystem reserveSystem = GameManager.Instance.ItemSystem.ReserveSystem;
+		ItemReserverSystem reserveSystem = GameManager.Instance.ItemSystem.ReserveSystem;
 
 		if (excludeOut == true)
-        {
-            List<ItemReserver> itemReserverList = reserveSystem.GetAllReserverFromSource(this);
-            foreach (ItemReserver itemReserver in itemReserverList)
-            {
+		{
+			List<ItemReserver> itemReserverList = reserveSystem.GetAllReserverFromSource(this);
+			foreach (ItemReserver itemReserver in itemReserverList)
+			{
 				var item = itemReserver.Item;
-                retVal[item.ItemDesc] -= item.Amount;
-            }
-        }
+				retVal[item.ItemDesc] -= item.Amount;
+			}
+		}
 
-        if (includeIn == true)
-        {
-            List<ItemReserver> itemReserverList = reserveSystem.GetAllReserverFromDest(this);
-            foreach (ItemReserver itemReserver in itemReserverList)
-            {
+		if (includeIn == true)
+		{
+			List<ItemReserver> itemReserverList = reserveSystem.GetAllReserverFromDest(this);
+			foreach (ItemReserver itemReserver in itemReserverList)
+			{
 				var item = itemReserver.Item;
-                retVal[item.ItemDesc] += item.Amount;
-            }
-        }
+				retVal[item.ItemDesc] += item.Amount;
+			}
+		}
 
-        return retVal;
+		return retVal;
 	}
 }
 
@@ -106,18 +107,18 @@ public class SingleItemContainer : ItemContainer
 		}
 	}
 
-    public Item ItemExcludeOut
-    {
-        get
-        {
+	public Item ItemExcludeOut
+	{
+		get
+		{
 			var v = GetItemList(true, false).FirstOrDefault();
-            Item item = new Item() { ItemDesc = v.Key, Amount = v.Value };
+			Item item = new Item() { ItemDesc = v.Key, Amount = v.Value };
 
-            return item;
-        }
-    }
+			return item;
+		}
+	}
 
-    public SingleItemContainer(RObject parentObject, ItemDataDescriptor desc) : base(parentObject)
+	public SingleItemContainer(RObject parentObject, ItemDataDescriptor desc) : base(parentObject)
 	{
 		ItemDict.Add(desc, 0);
 	}
@@ -182,9 +183,9 @@ public class Inventory : ItemContainer
 	public float WeightIncludeIn
 	{
 		get
-        {
-            return Item.GetWeights(GetItemList(false, true));
-        }
+		{
+			return Item.GetWeights(GetItemList(false, true));
+		}
 	}
 
 	public float RemainWeight { get => WeightLimit == 0 ? float.MaxValue : WeightLimit - Weight; }
@@ -227,7 +228,7 @@ public class WorkHolder : ItemContainer
 {
 	public List<Item> RequireItemList { get; private set; }
 
-	public WorkHolder(RObject parentObject, List<Item> requireItemList) :base(parentObject)
+	public WorkHolder(RObject parentObject, List<Item> requireItemList) : base(parentObject)
 	{
 		RequireItemList = new List<Item>(requireItemList);
 	}
@@ -293,7 +294,7 @@ public struct Item
 	}
 
 	public static float GetWeights(IDictionary<ItemDataDescriptor, int> items)
-    {
+	{
 		return items.Sum(s => s.Key.Weight * s.Value);
-    }
+	}
 }

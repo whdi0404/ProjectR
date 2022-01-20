@@ -7,34 +7,34 @@ using UnityEngine.UI;
 
 namespace M4u
 {
-    /// <summary>
-    /// M4uTextBinding. Bind Text
-    /// </summary>
+	/// <summary>
+	/// M4uTextBinding. Bind Text
+	/// </summary>
 	[AddComponentMenu("M4u/TextBinding")]
-    public class M4uTextBinding : M4uBindingSingle
-    {
-        public string Format = "";
+	public class M4uTextBinding : M4uBindingSingle
+	{
+		public string Format = "";
 
-        Text ui;
+		private Text ui;
 
-        public override void Start()
-        {
-            base.Start();
+		public override void Start()
+		{
+			base.Start();
 
-            ui = GetComponent<Text>();
-            OnChange();
-        }
+			ui = GetComponent<Text>();
+			OnChange();
+		}
 
-        public override void OnChange()
-        {
-            base.OnChange();
+		public override void OnChange()
+		{
+			base.OnChange();
 
-            ui.text = string.Format(Format, Values[0]);
-        }
+			ui.text = string.Format(Format, Values[0]);
+		}
 
-        public override string ToString()
-        {
-            return "Text.text=" + string.Format(Format, GetBindStr(Path));
-        }
-    }
+		public override string ToString()
+		{
+			return "Text.text=" + string.Format(Format, GetBindStr(Path));
+		}
+	}
 }
